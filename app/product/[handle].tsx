@@ -1,0 +1,207 @@
+import { Button } from '@/components/ui/button';
+import { useProduct } from '@/hooks/useShopifyData';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { ShopifyProductVariant } from '@/types/shopify';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, ShoppingCart, Star } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+export default function ProductPage() {
+    const { handle } = useLocalSearchParams<{ handle: string }>();
+    const router = useRouter();
+    const { data: product, isLoading, error } = useProduct(handle || '');
+    const iconColor = useThemeColor({}, 'text');
+    const backgroundColor = useThemeColor({}, 'background');
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(null);
+
+    if (isLoading) {
+        return (
+            <SafeAreaView className="flex-1 bg-background">
+                <View className="flex-1 justify-center items-center">
+                    <ActivityIndicator size="large" />
+                    <Text className="mt-4 text-muted-foreground">Loading product...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    if (error || !product) {
+        return (
+            <SafeAreaView className="flex-1 bg-background">
+                <View className="flex-1 justify-center items-center px-6">
+                    <Text className="text-destructive text-center mb-4">Product not found</Text>
+                    <Button onPress={() => router.back()} variant="outline">
+                        <Text className="text-foreground">Go Back</Text>
+                    </Button>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    const images = product.images.edges.map(edge => edge.node);
+    const variants = product.variants.edges.map(edge => edge.node);
+
+    // Get current pricing and availability
+    const currentVariant = selectedVariant || variants[0];
+    const currentPrice = currentVariant?.price || product.priceRange.minVariantPrice;
+    const currentAvailability = currentVariant?.availableForSale ?? product.availableForSale;
+    const currentStock = currentVariant?.quantityAvailable || product.totalInventory;
+
+    const handleVariantChange = (variantId: string) => {
+        const variant = variants.find(v => v.id === variantId);
+        if (variant) {
+            setSelectedVariant(variant);
+            // Update image if variant has its own image
+            if (variant.image) {
+                const imageIndex = images.findIndex(img => img.id === variant.image?.id);
+                if (imageIndex !== -1) {
+                    setSelectedImageIndex(imageIndex);
+                }
+            }
+        }
+    };
+
+    const formatPrice = (price: { amount: string; currencyCode: string }) => {
+        return `${price.currencyCode} ${price.amount}`;
+    };
+
+    return (
+        <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
+            <ScrollView className="flex-1">
+                {/* Product Details */}
+                <View className="px-6 py-4">
+                    <View className="flex-row items-center justify-between mb-6">
+                        <Button onPress={() => router.back()} variant="ghost" size="icon">
+                            <ArrowLeft size={24} color={iconColor} />
+                        </Button>
+                        <Text className="text-xl font-bold text-foreground">Product Details</Text>
+                        <View className="w-10" />
+                    </View>
+
+                    {/* Product Images */}
+                    {images.length > 0 && (
+                        <View className="mb-6">
+                            <View className="relative h-96 w-full">
+                                <Image
+                                    source={{ uri: images[selectedImageIndex].url }}
+                                    style={{ width: '100%', height: '100%' }}
+                                    className="rounded-xl"
+                                    resizeMode="contain"
+                                />
+                            </View>
+                            {images.length > 1 && (
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    className="mt-4 w-full"
+                                >
+                                    {images.map((image, index) => (
+                                        <Button
+                                            key={image.id}
+                                            onPress={() => setSelectedImageIndex(index)}
+                                            variant="ghost"
+                                            className={`mr-2 p-0 w-24 h-24 aspect-square rounded-lg border-2 ${index === selectedImageIndex ? 'border-primary' : 'border-border'
+                                                }`}
+                                        >
+                                            <Image
+                                                source={{ uri: image.url }}
+                                                className="rounded-lg p-2 w-24 h-24 aspect-square"
+                                                resizeMode="cover"
+                                            />
+                                        </Button>
+                                    ))}
+                                </ScrollView>
+                            )}
+                        </View>
+                    )}
+
+                    {/* Product Title, Vendor, Price, and Variant */}
+                    <View className="mb-6">
+                        <Text className="text-2xl font-bold text-foreground mb-2">
+                            {product.title}
+                        </Text>
+                        <Text className="text-lg text-muted-foreground mb-4">
+                            {product.vendor}
+                        </Text>
+                        <Text className="text-2xl font-bold text-primary mb-4">
+                            {formatPrice(currentPrice)}
+                        </Text>
+
+                        {variants.length > 1 && (
+                            <View className="mb-4">
+                                <Text className="text-lg font-semibold text-foreground mb-2">Variant</Text>
+                                <View className="flex-row flex-wrap gap-2">
+                                    {variants.map(variant => {
+                                        const selected = (currentVariant?.id === variant.id);
+                                        return (
+                                            <TouchableOpacity
+                                                key={variant.id}
+                                                onPress={() => handleVariantChange(variant.id)}
+                                                className={`px-4 py-3 rounded-lg border text-base font-medium ${selected ? 'bg-primary border-primary text-background' : 'bg-background border-border text-foreground'}`}
+                                                style={{ alignItems: 'center', marginBottom: 8 }}
+                                            >
+                                                <Text className={`${selected ? 'text-background' : 'text-foreground'}`}>{variant.title}</Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Product Availability */}
+                        <View className="flex-row items-center mb-4">
+                            <Star size={16} color="#FFA500" className="mr-2" />
+                            <Text className="text-muted-foreground">
+                                {currentAvailability ? `In Stock (${currentStock} available)` : 'Out of Stock'}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Product Description */}
+                    {product.description && (
+                        <View className="mb-6">
+                            <Text className="text-xl font-semibold text-foreground mb-3">
+                                Description
+                            </Text>
+                            <Text className="text-base text-muted-foreground leading-6">
+                                {product.description}
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Product Tags */}
+                    {product.tags.length > 0 && (
+                        <View className="mb-6">
+                            <Text className="text-xl font-semibold text-foreground mb-3">
+                                Tags
+                            </Text>
+                            <View className="flex-row flex-wrap">
+                                {product.tags.map((tag, index) => (
+                                    <View key={index} className="bg-muted rounded-full px-3 py-1 mr-2 mb-2">
+                                        <Text className="text-muted-foreground text-sm">{tag}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
+            {/* Add to Cart Button */}
+            <View className="px-6 py-4 bg-background border-t border-border">
+                <Button
+                    disabled={!currentAvailability}
+                    className="flex-row items-center justify-center py-6 px-4 rounded-xl gap-2"
+                    variant={currentAvailability ? "default" : "secondary"}
+                >
+                    <ShoppingCart size={15} color={backgroundColor} className="mr-3" />
+                    <Text className="text-background font-semibold text-lg">
+                        {currentAvailability ? 'Add to Cart' : 'Out of Stock'}
+                    </Text>
+                </Button>
+            </View>
+        </SafeAreaView>
+    );
+} 
