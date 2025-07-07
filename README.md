@@ -1,195 +1,251 @@
 # Shopify iOS Boilerplate
 
-A barebones React Native mobile application built with TypeScript and Tailwind CSS, integrating with Shopify Storefront API and Payload CMS for dynamic layout management.
-
-## Features
-
-- 🛍️ **Shopify Integration**: Full integration with Shopify Storefront API
-- 📱 **React Native**: Cross-platform mobile app (iOS focused)
-- 🎨 **Tailwind CSS**: Styling with NativeWind
-- 🔄 **Dynamic Layouts**: Payload CMS-powered layout management
-- 📊 **State Management**: Zustand for client state, React Query for server state
-- 🔐 **Customer Accounts**: WebView integration with Shopify Customer Account 2.0
-- 📱 **Tab Navigation**: Clean tab-based navigation structure
+React Native app with Expo Router integrating Shopify Customer Account API and Sanity CMS.
 
 ## Tech Stack
 
-- **React Native** with **Expo**
-- **TypeScript** for type safety
-- **Bun** as JavaScript runtime and package manager
-- **NativeWind** (Tailwind CSS for React Native)
-- **Zustand** for state management
-- **React Query** for server state management
-- **Zod** for validation
-- **React Navigation** for routing
-- **Shopify Storefront API** for e-commerce data
-- **Payload CMS** for dynamic content management
-
-## Runtime Preference
-
-This project uses **Bun** as the preferred JavaScript runtime and package manager for:
-
-- ⚡ **Faster installs**: Significantly faster package installation compared to npm
-- 🔧 **Built-in bundler**: Native bundling capabilities
-- 🚀 **Better performance**: Faster script execution
-- 📦 **Drop-in replacement**: Compatible with npm packages and scripts
-
-The project has been migrated from npm to bun with `bun.lockb` as the lockfile. All commands use `bun` instead of `npm`.
+- React Native with Expo Router
+- TypeScript
+- Bun package manager
+- NativeWind (Tailwind CSS)
+- Zustand for state management
+- React Query for data fetching
+- Sanity CMS for content management
+- Shopify Customer Account API + Storefront API
 
 ## Project Structure
 
 ```
-src/
-├── components/          # Reusable UI components
-│   ├── sections/       # CMS layout sections
-│   ├── ProductCard.tsx
-│   ├── ProductGrid.tsx
-│   ├── CollectionCard.tsx
-│   ├── CustomerAccountWebView.tsx
-│   └── DynamicLayoutRenderer.tsx
-├── config/             # Configuration files
-│   └── env.ts
-├── hooks/              # Custom React hooks
-│   ├── useShopifyData.ts
-│   └── usePayloadData.ts
-├── navigation/         # Navigation configuration
-│   └── AppNavigator.tsx
-├── screens/            # Screen components
-│   ├── HomeScreen.tsx
-│   ├── ProductsScreen.tsx
-│   ├── CollectionsScreen.tsx
-│   └── AccountScreen.tsx
-├── services/           # API services
-│   ├── shopify.ts
-│   └── payload.ts
-├── stores/             # Zustand stores
-│   ├── productStore.ts
-│   └── cmsStore.ts
-└── types/              # TypeScript type definitions
-    ├── shopify.ts
-    └── payload.ts
+app/
+├── api/                    # Server-side API routes
+│   └── sanity/            # Sanity data endpoints
+├── (tabs)/                # Tab navigation screens
+├── product/[handle].tsx   # Product detail page
+└── _layout.tsx           # Root layout
+
+components/
+├── auth/                  # Authentication components
+├── customer/             # Customer account components
+├── modules/              # Sanity CMS modules
+└── ui/                   # Reusable UI components
+
+lib/
+├── server/               # Server-side utilities
+└── sanityImage.ts        # Image URL helper
+
+services/
+├── customerAccountApi.ts # Customer Account API client
+├── customerAccountAuth.ts # OAuth authentication
+└── shopify.ts           # Storefront API client
+
+hooks/
+├── useSanityData.ts     # Sanity data hooks
+├── useShopifyData.ts    # Shopify data hooks
+└── useCustomerAccount.ts # Customer auth hooks
+
+stores/
+└── authStore.ts         # Authentication state
+
+types/
+├── sanity.ts            # Sanity type definitions
+├── shopify.ts           # Shopify type definitions
+└── customerAccount.ts   # Customer Account types
 ```
 
-## Configuration
+## API Routes
 
-### Environment Variables
+Server-side API routes for secure Sanity data fetching:
 
-Configure your API keys and store information in `app.json`:
+- `GET /api/sanity/home` - Homepage data
+- `GET /api/sanity/settings` - Site settings and navigation
+- `GET /api/sanity/products?limit=20` - Products with pagination
+- `GET /api/sanity/collections?limit=20` - Collections with pagination
+- `GET /api/sanity/page/[slug]` - Dynamic page content
 
-```json
-{
-  "expo": {
-    "extra": {
-      "shopifyStoreDomain": "your-store.myshopify.com",
-      "shopifyStorefrontAccessToken": "your-storefront-access-token",
-      "shopifyCustomerAccountUrl": "https://your-store.myshopify.com/account",
-      "payloadCmsApiUrl": "https://your-payload-cms.com/api",
-      "payloadCmsApiKey": "your-payload-cms-api-key",
-      "appEnv": "development"
-    }
-  }
-}
+## Environment Setup
+
+Create `.env` file in project root:
+
+```bash
+# Shopify Configuration (all public)
+EXPO_PUBLIC_SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
+EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN=your-storefront-token
+EXPO_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_URL=https://your-store.myshopify.com/account
+EXPO_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID=your-client-id
+EXPO_PUBLIC_SHOPIFY_SHOP_ID=your-shop-id
+EXPO_PUBLIC_SHOPIFY_AUTHORIZATION_URL=https://shopify.com/authentication/SHOP_ID/oauth/authorize
+EXPO_PUBLIC_SHOPIFY_TOKEN_URL=https://shopify.com/authentication/SHOP_ID/oauth/token
+EXPO_PUBLIC_SHOPIFY_LOGOUT_URL=https://shopify.com/authentication/SHOP_ID/logout
+EXPO_PUBLIC_SHOPIFY_CALLBACK_URL=shop.SHOP_ID.app://callback
+
+# Sanity Configuration
+EXPO_PUBLIC_SANITY_PROJECT_ID=your-project-id
+EXPO_PUBLIC_SANITY_DATASET=production
+SANITY_TOKEN=your-sanity-token-with-write-access
+
+# App Configuration
+EXPO_PUBLIC_APP_ENV=development
 ```
 
-### Shopify Setup
+## Shopify Setup
 
-1. Create a Shopify store or use an existing one
+### 1. Customer Account API Setup
+
+1. Go to Shopify Admin → Settings → Customer accounts
+2. Enable customer accounts
+3. Go to Settings → Apps and sales channels → Develop apps
+4. Create new app or select existing app
+5. Configure Customer Account API:
+   - Client type: Public
+   - Application type: Mobile
+   - Callback URI: `shop.YOUR_SHOP_ID.app://callback`
+   - Enable all customer account scopes
+
+### 2. Storefront API Setup
+
+1. In your Shopify app settings
 2. Enable Storefront API access
-3. Generate a Storefront access token
-4. Update the configuration with your store domain and access token
+3. Generate Storefront access token
+4. Enable required permissions (products, collections, etc.)
 
-### Payload CMS Setup
+## Sanity Setup
 
-1. Set up a Payload CMS instance
-2. Create the required collections using the schemas in `payload-schemas.md`
-3. Configure API access and generate an API key
-4. Update the configuration with your CMS URL and API key
+### 1. Create Sanity Project
 
-## Available Scripts
+```bash
+npm create sanity@latest
+cd your-sanity-project
+```
 
-- `bun run android` - Run on Android
-- `bun run ios` - Run on iOS
-- `bun run web` - Run on web
-- `bun start` - Start the development server
+### 2. Install Shopify Connect App
 
-## Key Components
+1. Go to https://www.sanity.io/shopify
+2. Install the Shopify Connect app to your Sanity project
+3. Connect your Shopify store
+4. Configure sync settings (products, collections, etc.)
 
-### DynamicLayoutRenderer
+### 3. Sanity Studio Configuration
 
-Renders sections based on Payload CMS layout data:
-- Hero sections
-- Product grids
-- Featured products
-- Text blocks
-- Image blocks
-- Promotional sections
+Install required schemas in your Sanity studio:
 
-### ProductGrid
+```javascript
+// schemas/index.js
+import {shopifyProduct, shopifyProductVariant, shopifyCollection} from '@sanity/shopify'
 
-Displays products in a grid layout with:
-- Infinite scrolling
-- Pull-to-refresh
-- Loading states
-- Error handling
+export const schemaTypes = [
+  // Shopify schemas
+  shopifyProduct,
+  shopifyProductVariant, 
+  shopifyCollection,
+  
+  // Content schemas
+  {
+    name: 'home',
+    type: 'document',
+    title: 'Home Page',
+    fields: [
+      {
+        name: 'hero',
+        type: 'object',
+        fields: [
+          {name: 'title', type: 'string'},
+          {name: 'description', type: 'text'},
+          {name: 'image', type: 'image'},
+          {
+            name: 'cta',
+            type: 'object',
+            fields: [
+              {name: 'title', type: 'string'},
+              {name: 'url', type: 'string'}
+            ]
+          }
+        ]
+      },
+      {
+        name: 'modules',
+        type: 'array',
+        of: [
+          {type: 'products'},
+          {type: 'imageWithProductHotspots'},
+          {type: 'callout'},
+          {type: 'accordion'},
+          {type: 'grid'},
+          {type: 'images'},
+          {type: 'instagram'}
+        ]
+      }
+    ]
+  },
+  
+  {
+    name: 'settings',
+    type: 'document',
+    title: 'Settings',
+    fields: [
+      {
+        name: 'menu',
+        type: 'object',
+        fields: [
+          {
+            name: 'links',
+            type: 'array',
+            of: [
+              {type: 'linkInternal'},
+              {type: 'linkExternal'}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+```
 
-### CustomerAccountWebView
+### 4. Sync Products from Shopify
 
-Integrated Shopify Customer Account 2.0 with:
-- Navigation controls
-- Error handling
-- Loading states
+1. In Sanity Studio, go to Shopify Connect
+2. Run initial sync to import products/collections
+3. Set up webhooks for automatic syncing
+4. Configure which data to sync (products, variants, collections)
 
-## Payload CMS Integration
+### 5. Generate Sanity Token
 
-The app supports dynamic layouts through Payload CMS with the following content types:
-
-- **Layouts**: Define page structures with ordered sections
-- **Promotions**: Manage promotional content
-- **Featured Content**: Highlight specific products or collections
-- **App Config**: Global app settings and theming
-
-See `payload-schemas.md` for detailed schema definitions.
-
-## State Management
-
-- **Zustand**: Client-side state (user interactions, UI state)
-- **React Query**: Server state (API data, caching, synchronization)
-- **Zod**: Runtime validation and type safety
+1. Go to sanity.io/manage → your project → API
+2. Create new token with Editor permissions
+3. Add token to `.env` as `SANITY_TOKEN`
 
 ## Getting Started
 
-1. Clone the repository
+1. Clone repository
 2. Install dependencies: `bun install`
-3. Configure your Shopify and Payload CMS credentials
-4. Run the development server: `bun start`
-5. Launch on your preferred platform
+3. Create `.env` file with configuration
+4. Start development server: `bun start`
+5. Run on iOS: `bun run ios`
 
-## Troubleshooting
+## Development Server
 
-**SDK Version Missing Error**: If you encounter "SDK Version is missing" error, ensure your `app.json` includes:
-- `sdkVersion`: Matching your Expo SDK version
-- `ios.bundleIdentifier`: For iOS builds
-- `android.package`: For Android builds
-- `newArchEnabled: false`: For better compatibility with third-party packages
+The app includes server-side API routes that require ngrok for Customer Account API testing:
 
-## Development Notes
+1. Install ngrok: `brew install ngrok`
+2. Run ngrok: `ngrok http 8081`
+3. Update Shopify app callback URL with ngrok URL
+4. Add ngrok URL to `.env` as `EXPO_PUBLIC_NGROK_URL`
 
-- The app uses minimal styling with no animations as requested
-- All layout management is handled through Payload CMS
-- Customer accounts use webview for full Shopify feature support
-- Tab navigation provides clean separation of concerns
+## Customer Account API Flow
 
-## Next Steps
+1. User taps login
+2. OAuth flow redirects to Shopify
+3. User authenticates with Shopify
+4. App receives authorization code via deep link
+5. Exchange code for access token
+6. Store token securely with Expo SecureStore
+7. Use token for authenticated GraphQL requests
 
-To extend this boilerplate:
+## Security Features
 
-1. Add product search and filtering
-2. Implement cart functionality
-3. Add push notifications
-4. Integrate analytics
-5. Add offline support
-6. Implement user authentication flows
-
-## License
-
-This project is open source and available under the MIT License. 
+- SANITY_TOKEN only accessible server-side
+- Client environment validation with Zod
+- Server environment validation for API routes
+- Secure token storage with Expo SecureStore
+- OAuth 2.0 with PKCE for Customer Account API
+- No sensitive data in git history or build artifacts 
