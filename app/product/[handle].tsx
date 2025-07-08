@@ -24,7 +24,7 @@ export default function ProductPage() {
     const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(null);
     
     // Image loading states
-    const [mainImageLoaded, setMainImageLoaded] = useState(false);
+    const [mainImagesLoaded, setMainImagesLoaded] = useState<{ [key: string]: boolean }>({});
     const [thumbnailsLoaded, setThumbnailsLoaded] = useState<{ [key: string]: boolean }>({});
 
     if (isLoading) {
@@ -46,6 +46,7 @@ export default function ProductPage() {
 
     const images = product.images.edges.map(edge => edge.node);
     const variants = product.variants.edges.map(edge => edge.node);
+    const currentImage = images[selectedImageIndex];
 
     // Get current pricing and availability
     const currentVariant = selectedVariant || variants[0];
@@ -62,7 +63,6 @@ export default function ProductPage() {
                 const imageIndex = images.findIndex(img => img.id === variant.image?.id);
                 if (imageIndex !== -1) {
                     setSelectedImageIndex(imageIndex);
-                    setMainImageLoaded(false); // Reset loading state for new image
                 }
             }
         }
@@ -72,11 +72,16 @@ export default function ProductPage() {
         return `${price.currencyCode} ${price.amount}`;
     };
 
+    const handleMainImageLoad = (imageId: string) => {
+        setMainImagesLoaded(prev => ({ ...prev, [imageId]: true }));
+    };
+
     const handleThumbnailLoad = (imageId: string) => {
         setThumbnailsLoaded(prev => ({ ...prev, [imageId]: true }));
     };
 
     const allThumbnailsLoaded = images.length > 0 && Object.keys(thumbnailsLoaded).length === images.length;
+    const currentMainImageLoaded = currentImage ? mainImagesLoaded[currentImage.id] : false;
 
     return (
         <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
@@ -95,17 +100,17 @@ export default function ProductPage() {
                     {images.length > 0 && (
                         <View className="mb-6">
                             <View className="relative h-96 w-full">
-                                {!mainImageLoaded && <MainImageSkeleton />}
+                                {!currentMainImageLoaded && <MainImageSkeleton />}
                                 <Image
-                                    source={{ uri: optimizeShopifyImage(images[selectedImageIndex].url, 600, 600) }}
+                                    source={{ uri: optimizeShopifyImage(currentImage.url, 600, 600) }}
                                     style={{ 
                                         width: '100%', 
                                         height: '100%',
-                                        opacity: mainImageLoaded ? 1 : 0
+                                        opacity: currentMainImageLoaded ? 1 : 0
                                     }}
                                     className="rounded-xl absolute"
                                     resizeMode="contain"
-                                    onLoad={() => setMainImageLoaded(true)}
+                                    onLoad={() => handleMainImageLoad(currentImage.id)}
                                 />
                             </View>
                             {images.length > 1 && (
@@ -125,7 +130,6 @@ export default function ProductPage() {
                                                 key={image.id}
                                                 onPress={() => {
                                                     setSelectedImageIndex(index);
-                                                    setMainImageLoaded(false);
                                                 }}
                                                 variant="ghost"
                                                 className={`mr-2 p-0 w-24 h-24 aspect-square rounded-lg border-2 relative ${index === selectedImageIndex ? 'border-primary' : 'border-border'
