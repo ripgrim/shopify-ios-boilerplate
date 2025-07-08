@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { Fingerprint, LogIn, Shield, User } from 'lucide-react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { Fingerprint, LogIn, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,7 +14,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const { login, isLoading, error, clearError, enableBiometrics, authenticateWithBiometrics, biometricEnabled } = useAuth();
   const [showBiometricOption, setShowBiometricOption] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-
+  const iconColor = useThemeColor({}, 'background');
   React.useEffect(() => {
     // Check if biometric authentication is available
     const checkBiometrics = async () => {
@@ -73,7 +74,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <View className="bg-card rounded-3xl p-8 w-full max-w-sm shadow-lg">
           <View className="items-center mb-8">
             <View className="w-16 h-16 bg-primary rounded-full items-center justify-center mb-4">
-              <User size={32} className="text-primary-foreground" />
+              <User size={32} className="text-primary-foreground" color={iconColor}/>
             </View>
             <Text className="text-2xl font-bold text-card-foreground mb-2">Welcome</Text>
             <Text className="text-muted-foreground text-center">
@@ -93,11 +94,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             variant={isLoading ? "secondary" : "default"}
             className="w-full p-4 rounded-xl mb-4"
           >
-            <View className="flex-row items-center justify-center">
+            <View className="flex-row items-center justify-center gap-2">
               {isLoading ? (
                 <ActivityIndicator size="small" color="white" className="mr-2" />
               ) : (
-                <LogIn size={20} className="text-primary-foreground mr-2" />
+                <LogIn size={20} className="text-primary-foreground p-4" color={iconColor}/>
               )}
               <Text className="text-primary-foreground font-semibold">
                 {isLoading ? 'Signing in...' : 'Sign in with Shopify'}
@@ -121,13 +122,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </View>
             </Button>
           )}
-
-          <View className="flex-row items-center justify-center mt-4">
-            <Shield size={16} className="text-muted-foreground mr-2" />
-            <Text className="text-muted-foreground text-sm">
-              Secure OAuth 2.0 authentication
-            </Text>
-          </View>
         </View>
       </View>
     </SafeAreaView>

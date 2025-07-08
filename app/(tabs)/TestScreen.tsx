@@ -1,13 +1,145 @@
-import { useAuth } from '@/hooks/useCustomerAccount';
-import { CUSTOMER_QUERY, customerAccountApi } from '@/services/customerAccountApi';
-import React, { useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+// import { useAuth } from '@/hooks/useCustomerAccount';
+// import { CUSTOMER_QUERY, customerAccountApi } from '@/services/customerAccountApi';
+import * as Notifications from 'expo-notifications';
+import React, { useEffect, useState } from 'react';
+import { Alert, Keyboard, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Haptics from 'expo-haptics';
+import {
+  DynamicIslandTimerType,
+  LiveActivityState,
+  LiveActivityStyles,
+  startActivity,
+  stopActivity,
+  updateActivity
+} from 'expo-live-activity';
+import { DeviceMotion } from 'expo-sensors';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    // deprecated: shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 export default function TestScreen() {
-  const { login, logout, isAuthenticated } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  // const { login, logout, isAuthenticated } = useAuth();
+  // const [isLoading, setIsLoading] = useState(false);
 
+  // Expo module states
+  const [notificationPermission, setNotificationPermission] = useState<Notifications.NotificationPermissionsStatus | null>(null);
+  const [deviceMotionData, setDeviceMotionData] = useState<any>(null);
+  const [isMotionListening, setIsMotionListening] = useState(false);
+
+  // Custom notification inputs
+  const [notificationTitle, setNotificationTitle] = useState('Custom Notification');
+  const [notificationBody, setNotificationBody] = useState('This is a custom notification!');
+  const [notificationData, setNotificationData] = useState('{"key": "value"}');
+
+  const [activityId, setActivityID] = useState<string | null>();
+  const [title, onChangeTitle] = useState("Title");
+  const [subtitle, onChangeSubtitle] = useState("This is a subtitle");
+  const [imageName, onChangeImageName] = useState("logo");
+  const [date, setDate] = useState(new Date());
+  const [timerType, setTimerType] = useState<DynamicIslandTimerType>("circular");
+  const [passSubtitle, setPassSubtitle] = useState(true);
+  const [passImage, setPassImage] = useState(true);
+  const [passDate, setPassDate] = useState(true);
+
+  let backgroundColor = "001A72";
+  let titleColor = "EBEBF0";
+  let subtitleColor = "#FFFFFF75";
+  let progressViewTint = "38ACDD";
+  let progessViewLabelColor = "#FFFFFF";
+
+  const startLiveActivity = () => {
+    Keyboard.dismiss();
+    const state: LiveActivityState = {
+      title: title,
+      subtitle: passSubtitle ? subtitle : undefined,
+      date: passDate ? date.getTime() : undefined,
+      imageName: passImage ? imageName : undefined,
+      dynamicIslandImageName: "logo-island",
+    };
+
+    const styles: LiveActivityStyles = {
+      backgroundColor: backgroundColor,
+      titleColor: titleColor,
+      subtitleColor: subtitleColor,
+      progressViewTint: progressViewTint,
+      progressViewLabelColor: progessViewLabelColor,
+      timerType: timerType,
+    };
+    try {
+      const id = startActivity(state, styles);
+      console.log(id);
+      setActivityID(id);
+    } catch (e) {
+      console.error("Starting activity failed! " + e);
+    }
+  };
+
+  const stopLiveActivity = () => {
+    const state: LiveActivityState = {
+      title: title,
+      subtitle: subtitle,
+      date: Date.now(),
+      imageName: imageName,
+      dynamicIslandImageName: "logo-island",
+    };
+    try {
+      activityId && stopActivity(activityId, state);
+      setActivityID(null);
+    } catch (e) {
+      console.error("Stopping activity failed! " + e);
+    }
+  };
+
+  const updateLiveActivity = () => {
+    const state: LiveActivityState = {
+      title: title,
+      subtitle: subtitle,
+      date: date.getTime(),
+      imageName: imageName,
+      dynamicIslandImageName: "logo-island",
+    };
+    try {
+      activityId && updateActivity(activityId, state);
+    } catch (e) {
+      console.error("Updating activity failed! " + e);
+    }
+  };
+
+  // Device motion listener
+  useEffect(() => {
+    let subscription: any;
+
+    if (isMotionListening) {
+      subscription = DeviceMotion.addListener(motionData => {
+        setDeviceMotionData(motionData);
+      });
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [isMotionListening]);
+
+  // Cleanup motion listener on unmount
+  useEffect(() => {
+    return () => {
+      DeviceMotion.removeAllListeners();
+    };
+  }, []);
+
+  // COMMENTED OUT AUTH FUNCTIONS
+  /*
   const clearTokens = async () => {
     try {
       await logout();
@@ -243,12 +375,105 @@ export default function TestScreen() {
       setIsLoading(false);
     }
   };
+  */
+
+  // Expo module test functions
+  const testNotificationPermissions = async () => {
+    try {
+      const { status } = await Notifications.requestPermissionsAsync();
+      setNotificationPermission({ status } as Notifications.NotificationPermissionsStatus);
+      Alert.alert('Notification Permission', `Status: ${status}`);
+    } catch (error) {
+      Alert.alert('Error', `Failed to request notification permission: ${error}`);
+    }
+  };
+
+  const scheduleLocalNotification = async () => {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "HI!!!!!! WASSUP!!!!!!",
+          body: "HI MY NAME IS EXPO!! UR GAY!",
+          data: { data: 'WHAT DOES THIS DO?' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 1,
+        },
+      });
+      Alert.alert('Success', 'Local notification scheduled for 1 second');
+    } catch (error) {
+      Alert.alert('Error', `Failed to schedule notification: ${error}`);
+    }
+  };
+
+  const sendCustomNotification = async () => {
+    try {
+      let parsedData;
+      try {
+        parsedData = JSON.parse(notificationData);
+      } catch {
+        parsedData = { data: notificationData };
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: notificationTitle,
+          body: notificationBody,
+          data: parsedData,
+        },
+        trigger: null, // Send immediately
+      });
+      Alert.alert('Success', 'Custom notification sent immediately!');
+    } catch (error) {
+      Alert.alert('Error', `Failed to send custom notification: ${error}`);
+    }
+  };
+
+  const getNotificationToken = async () => {
+    try {
+      const token = await Notifications.getExpoPushTokenAsync();
+      console.log('Expo Push Token:', token);
+      Alert.alert('Push Token', `Token: ${token.data.substring(0, 20)}...`);
+    } catch (error) {
+      Alert.alert('Error', `Failed to get push token: ${error}`);
+    }
+  };
+
+  const toggleMotionListener = () => {
+    setIsMotionListening(!isMotionListening);
+    if (!isMotionListening) {
+      Alert.alert('Motion Sensor', 'Started listening to device motion');
+    } else {
+      Alert.alert('Motion Sensor', 'Stopped listening to device motion');
+      setDeviceMotionData(null);
+    }
+  };
+
+  const testHapticFeedback = async (type: 'impact' | 'notification' | 'selection') => {
+    try {
+      switch (type) {
+        case 'impact':
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          break;
+        case 'notification':
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          break;
+        case 'selection':
+          await Haptics.selectionAsync();
+          break;
+      }
+      Alert.alert('Haptic Feedback', `${type} feedback triggered`);
+    } catch (error) {
+      Alert.alert('Error', `Failed to trigger haptic feedback: ${error}`);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView className="flex-1 p-4">
         <Text className="text-2xl font-bold text-foreground mb-6">
-          Customer Account API Test
+          Expo Modules Test
         </Text>
 
         <TouchableOpacity
@@ -260,108 +485,212 @@ export default function TestScreen() {
           </Text>
         </TouchableOpacity>
 
+        <Text className="text-lg font-semibold text-foreground mb-4">
+          📱 Notifications
+        </Text>
+
         <View className="mb-6">
-          <Text className="text-lg text-foreground mb-4">
-            Auth Status: <Text className={`font-semibold ${isAuthenticated ? 'text-green-600' : 'text-red-600'}`}>
-              {isAuthenticated ? '✅ Authenticated' : '❌ Not authenticated'}
+          <Text className="text-sm font-medium text-foreground mb-2">Custom Notification Title:</Text>
+          <TextInput
+            value={notificationTitle}
+            onChangeText={setNotificationTitle}
+            placeholder="Enter notification title"
+            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
+          />
+
+          <Text className="text-sm font-medium text-foreground mb-2">Custom Notification Body:</Text>
+          <TextInput
+            value={notificationBody}
+            onChangeText={setNotificationBody}
+            placeholder="Enter notification body"
+            multiline
+            numberOfLines={2}
+            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
+          />
+
+          <Text className="text-sm font-medium text-foreground mb-2">Custom Notification Data (JSON):</Text>
+          <TextInput
+            value={notificationData}
+            onChangeText={setNotificationData}
+            placeholder='{"key": "value"}'
+            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
+          />
+        </View>
+
+        <View className="flex-row flex-wrap gap-3 mb-6">
+          <TouchableOpacity
+            onPress={testNotificationPermissions}
+            className="bg-blue-600 p-4 rounded-xl shadow-lg shadow-blue-600/20 flex-1 min-w-[45%]"
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              🔐 Request Permission
             </Text>
-          </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={isAuthenticated ? logout : login}
-            className={`p-4 rounded-xl mb-4 ${
-              isAuthenticated 
-                ? 'bg-red-500 shadow-lg shadow-red-500/20' 
-                : 'bg-green-500 shadow-lg shadow-green-500/20'
-            }`}
+            onPress={scheduleLocalNotification}
+            className="bg-green-600 p-4 rounded-xl shadow-lg shadow-green-600/20 flex-1 min-w-[45%]"
           >
-            <Text className="text-foreground text-center text-lg font-bold">
-              {isAuthenticated ? '🚪 Sign Out' : '🔐 Sign In with Shopify'}
+            <Text className="text-foreground text-center text-sm font-semibold">
+              📅 Schedule Test (1s)
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={sendCustomNotification}
+            className="bg-red-600 p-4 rounded-xl shadow-lg shadow-red-600/20 w-full"
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              🚀 Send Custom Notification Now
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={getNotificationToken}
+            className="bg-purple-600 p-4 rounded-xl shadow-lg shadow-purple-600/20 w-full"
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              🎯 Get Push Token
             </Text>
           </TouchableOpacity>
         </View>
 
-        {isAuthenticated && (
-          <View className="space-y-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-4">
-              🧪 API Testing Tools
+        <Text className="text-lg font-semibold text-foreground mb-4">
+          📱 Device Motion
+        </Text>
+        <View className="mb-6">
+          <TouchableOpacity
+            onPress={toggleMotionListener}
+            className={`p-4 rounded-xl shadow-lg mb-4 ${isMotionListening
+              ? 'bg-red-600 shadow-red-600/20'
+              : 'bg-green-600 shadow-green-600/20'
+              }`}
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              {isMotionListening ? '⏹️ Stop Motion' : '▶️ Start Motion'}
             </Text>
+          </TouchableOpacity>
 
-            <View className="flex-row flex-wrap gap-3">
-              <TouchableOpacity
-                onPress={debugTokenFormat}
-                className="bg-red-600 p-4 rounded-xl shadow-lg shadow-red-600/20 flex-1 min-w-[45%]"
-              >
-                <Text className="text-foreground text-center text-sm font-semibold">
-                  🔍 Debug Token
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={testWithCleanToken}
-                disabled={isLoading}
-                className={`p-4 rounded-xl shadow-lg flex-1 min-w-[45%] ${
-                  isLoading 
-                    ? 'bg-gray-400 shadow-gray-400/20' 
-                    : 'bg-amber-500 shadow-amber-500/20'
-                }`}
-              >
-                <Text className="text-foreground text-center text-sm font-semibold">
-                  {isLoading ? '⏳ Testing...' : '🧼 Clean Token Test'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={testCustomerAccountApi}
-                disabled={isLoading}
-                className={`p-6 rounded-xl shadow-lg w-full ${
-                  isLoading 
-                    ? 'bg-gray-400 shadow-gray-400/20' 
-                    : 'bg-blue-600 shadow-blue-600/20'
-                }`}
-              >
-                <Text className="text-foreground text-center text-lg font-bold">
-                  {isLoading ? '⏳ Testing...' : '👤 Test Customer Profile'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={testCustomerOrders}
-                disabled={isLoading}
-                className={`p-4 rounded-xl shadow-lg flex-1 min-w-[45%] ${
-                  isLoading 
-                    ? 'bg-gray-400 shadow-gray-400/20' 
-                    : 'bg-green-600 shadow-green-600/20'
-                }`}
-              >
-                <Text className="text-foreground text-center text-sm font-semibold">
-                  {isLoading ? '⏳ Testing...' : '📦 Customer Orders'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={testManualFetch}
-                disabled={isLoading}
-                className={`p-4 rounded-xl shadow-lg flex-1 min-w-[45%] ${
-                  isLoading 
-                    ? 'bg-gray-400 shadow-gray-400/20' 
-                    : 'bg-purple-600 shadow-purple-600/20'
-                }`}
-              >
-                <Text className="text-foreground text-center text-sm font-semibold">
-                  {isLoading ? '⏳ Testing...' : '🔧 Manual Fetch'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={clearTokens}
-                className="bg-orange-500 p-4 rounded-xl shadow-lg shadow-orange-500/20 w-full"
-              >
-                <Text className="text-foreground text-center text-base font-bold">
-                  🗑️ Clear Auth Tokens
-                </Text>
-              </TouchableOpacity>
+          {deviceMotionData && (
+            <View className="bg-gray-100 p-4 rounded-xl">
+              <Text className="text-gray-800 text-sm">
+                Acceleration: X: {deviceMotionData.acceleration?.x?.toFixed(2)}, Y: {deviceMotionData.acceleration?.y?.toFixed(2)}, Z: {deviceMotionData.acceleration?.z?.toFixed(2)}
+              </Text>
+              <Text className="text-gray-800 text-sm">
+                Rotation: X: {deviceMotionData.rotation?.alpha?.toFixed(2)}, Y: {deviceMotionData.rotation?.beta?.toFixed(2)}, Z: {deviceMotionData.rotation?.gamma?.toFixed(2)}
+              </Text>
             </View>
+          )}
+        </View>
+
+        <Text className="text-lg font-semibold text-foreground mb-4">
+          📳 Haptic Feedback
+        </Text>
+        <View className="flex-row flex-wrap gap-3 mb-6">
+          <TouchableOpacity
+            onPress={() => testHapticFeedback('impact')}
+            className="bg-orange-600 p-4 rounded-xl shadow-lg shadow-orange-600/20 flex-1 min-w-[30%]"
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              💥 Impact
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => testHapticFeedback('notification')}
+            className="bg-teal-600 p-4 rounded-xl shadow-lg shadow-teal-600/20 flex-1 min-w-[30%]"
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              🔔 Notification
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => testHapticFeedback('selection')}
+            className="bg-pink-600 p-4 rounded-xl shadow-lg shadow-pink-600/20 flex-1 min-w-[30%]"
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              👆 Selection
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text className="text-lg font-semibold text-foreground mb-4">
+          🔴 Live Activities
+        </Text>
+        <Text className="text-red-600 text-sm mb-4">
+          ⚠️ iOS 16+ required. Development build needed (not available in Expo Go).
+        </Text>
+
+        <View className="mb-6">
+          <Text className="text-sm font-medium text-foreground mb-2">Activity Title:</Text>
+          <TextInput
+            value={title}
+            onChangeText={onChangeTitle}
+            placeholder="Enter activity title"
+            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
+          />
+
+          <Text className="text-sm font-medium text-foreground mb-2">Activity Subtitle:</Text>
+          <TextInput
+            value={subtitle}
+            onChangeText={onChangeSubtitle}
+            placeholder="Enter activity subtitle"
+            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
+          />
+
+          <Text className="text-sm font-medium text-foreground mb-2">Image Name:</Text>
+          <TextInput
+            value={imageName}
+            onChangeText={onChangeImageName}
+            placeholder="Enter image name"
+            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
+          />
+        </View>
+
+        <View className="flex-row flex-wrap gap-3 mb-6">
+          <TouchableOpacity
+            onPress={startLiveActivity}
+            disabled={!!activityId}
+            className={`p-4 rounded-xl shadow-lg flex-1 min-w-[30%] ${
+              activityId ? 'bg-gray-400' : 'bg-green-600 shadow-green-600/20'
+            }`}
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              ▶️ Start Activity
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={updateLiveActivity}
+            disabled={!activityId}
+            className={`p-4 rounded-xl shadow-lg flex-1 min-w-[30%] ${
+              !activityId ? 'bg-gray-400' : 'bg-blue-600 shadow-blue-600/20'
+            }`}
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              🔄 Update Activity
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={stopLiveActivity}
+            disabled={!activityId}
+            className={`p-4 rounded-xl shadow-lg flex-1 min-w-[30%] ${
+              !activityId ? 'bg-gray-400' : 'bg-red-600 shadow-red-600/20'
+            }`}
+          >
+            <Text className="text-foreground text-center text-sm font-semibold">
+              ⏹️ Stop Activity
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {activityId && (
+          <View className="bg-gray-100 p-4 rounded-xl mb-6">
+            <Text className="text-gray-800 text-sm font-semibold">
+              Active Activity ID: {activityId}
+            </Text>
           </View>
         )}
       </ScrollView>
