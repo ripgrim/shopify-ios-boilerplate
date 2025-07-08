@@ -1,4 +1,8 @@
+import MainImageSkeleton from '@/components/skeletons/productPage/mainImage';
+import ThumbnailsSkeleton from '@/components/skeletons/productPage/thumbnails';
+import ProductPageSkeleton from '@/components/skeletons/productPageSkeleton';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { useProduct } from '@/hooks/useShopifyData';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -7,7 +11,7 @@ import { ShopifyProductVariant } from '@/types/shopify';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, ShoppingCart, Star } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProductPage() {
@@ -18,16 +22,13 @@ export default function ProductPage() {
     const backgroundColor = useThemeColor({}, 'background');
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(null);
+    
+    // Image loading states
+    const [mainImageLoaded, setMainImageLoaded] = useState(false);
+    const [thumbnailsLoaded, setThumbnailsLoaded] = useState<{ [key: string]: boolean }>({});
 
     if (isLoading) {
-        return (
-            <SafeAreaView className="flex-1 bg-background">
-                <View className="flex-1 justify-center items-center">
-                    <ActivityIndicator size="large" />
-                    <Text className="mt-4 text-muted-foreground">Loading product...</Text>
-                </View>
-            </SafeAreaView>
-        );
+        return <ProductPageSkeleton onBack={() => router.back()} />;
     }
 
     if (error || !product) {
@@ -61,6 +62,7 @@ export default function ProductPage() {
                 const imageIndex = images.findIndex(img => img.id === variant.image?.id);
                 if (imageIndex !== -1) {
                     setSelectedImageIndex(imageIndex);
+                    setMainImageLoaded(false); // Reset loading state for new image
                 }
             }
         }
@@ -69,6 +71,12 @@ export default function ProductPage() {
     const formatPrice = (price: { amount: string; currencyCode: string }) => {
         return `${price.currencyCode} ${price.amount}`;
     };
+
+    const handleThumbnailLoad = (imageId: string) => {
+        setThumbnailsLoaded(prev => ({ ...prev, [imageId]: true }));
+    };
+
+    const allThumbnailsLoaded = images.length > 0 && Object.keys(thumbnailsLoaded).length === images.length;
 
     return (
         <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
@@ -87,35 +95,58 @@ export default function ProductPage() {
                     {images.length > 0 && (
                         <View className="mb-6">
                             <View className="relative h-96 w-full">
+                                {!mainImageLoaded && <MainImageSkeleton />}
                                 <Image
-                                    source={{ uri: images[selectedImageIndex].url }}
-                                    style={{ width: '100%', height: '100%' }}
-                                    className="rounded-xl"
+                                    source={{ uri: optimizeShopifyImage(images[selectedImageIndex].url, 600, 600) }}
+                                    style={{ 
+                                        width: '100%', 
+                                        height: '100%',
+                                        opacity: mainImageLoaded ? 1 : 0
+                                    }}
+                                    className="rounded-xl absolute"
                                     resizeMode="contain"
+                                    onLoad={() => setMainImageLoaded(true)}
                                 />
                             </View>
                             {images.length > 1 && (
-                                <ScrollView
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    className="mt-4 w-full"
-                                >
-                                    {images.map((image, index) => (
-                                        <Button
-                                            key={image.id}
-                                            onPress={() => setSelectedImageIndex(index)}
-                                            variant="ghost"
-                                            className={`mr-2 p-0 w-24 h-24 aspect-square rounded-lg border-2 ${index === selectedImageIndex ? 'border-primary' : 'border-border'
-                                                }`}
-                                        >
-                                            <Image
-                                                source={{ uri: optimizeShopifyImage(image.url, 128, 128) }}
-                                                className="rounded-lg p-2 w-24 h-24 aspect-square"
-                                                resizeMode="cover"
-                                            />
-                                        </Button>
-                                    ))}
-                                </ScrollView>
+                                <View>
+                                    {!allThumbnailsLoaded && <ThumbnailsSkeleton />}
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        className="mt-4 w-full"
+                                        style={{ 
+                                            opacity: allThumbnailsLoaded ? 1 : 0,
+                                            position: allThumbnailsLoaded ? 'relative' : 'absolute'
+                                        }}
+                                    >
+                                        {images.map((image, index) => (
+                                            <Button
+                                                key={image.id}
+                                                onPress={() => {
+                                                    setSelectedImageIndex(index);
+                                                    setMainImageLoaded(false);
+                                                }}
+                                                variant="ghost"
+                                                className={`mr-2 p-0 w-24 h-24 aspect-square rounded-lg border-2 relative ${index === selectedImageIndex ? 'border-primary' : 'border-border'
+                                                    }`}
+                                            >
+                                                {!thumbnailsLoaded[image.id] && (
+                                                    <Skeleton className="w-24 h-24 rounded-lg absolute" />
+                                                )}
+                                                <Image
+                                                    source={{ uri: optimizeShopifyImage(image.url, 128, 128) }}
+                                                    className="rounded-lg p-2 w-24 h-24 aspect-square"
+                                                    style={{
+                                                        opacity: thumbnailsLoaded[image.id] ? 1 : 0
+                                                    }}
+                                                    resizeMode="cover"
+                                                    onLoad={() => handleThumbnailLoad(image.id)}
+                                                />
+                                            </Button>
+                                        ))}
+                                    </ScrollView>
+                                </View>
                             )}
                         </View>
                     )}

@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/text';
 import { ShopifyCollection } from '@/types/shopify';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 interface CollectionCardProps {
   collection: ShopifyCollection;
@@ -28,7 +28,13 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onPress, st
           />
         ) : (
           <View style={{ width: '100%', height: 200 }} className="bg-muted/30 justify-center items-center">
-            <Text className="text-muted-foreground text-sm">No Image</Text>
+            <Text className="text-muted-foreground text-sm">
+            {useColorScheme() === 'dark' ? (
+              <Image source={require('@/assets/images/epoc-light.png')} style={{ width: 64, height: 62, opacity: 0.05 }} resizeMode="contain" />
+            ) : (
+              <Image source={require('@/assets/images/epoc.png')} style={{ width: 64, height: 62, opacity: 0.1 }} resizeMode="contain" />
+            )}
+            </Text>
           </View>
         )}
       </View>
