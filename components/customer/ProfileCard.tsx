@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 import { useCustomer } from '@/hooks/useShopifyData';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Edit, User } from 'lucide-react-native';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 interface ProfileCardProps {
   onEdit?: () => void;

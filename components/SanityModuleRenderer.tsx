@@ -1,6 +1,7 @@
+import { Text } from '@/components/ui/text';
 import { AccordionModule, CalloutModule, GridModule, ImagesModule, ImageWithProductHotspotsModule, InstagramModule, ProductsModule, SanityModule } from '@/types/sanity';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { AccordionModuleComponent } from './modules/AccordionModule';
 import { CalloutModuleComponent } from './modules/CalloutModule';
 import { GridModuleComponent } from './modules/GridModule';

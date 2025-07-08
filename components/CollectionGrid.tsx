@@ -1,6 +1,6 @@
 import { ShopifyCollection } from '@/types/shopify';
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, View } from 'react-native';
 import CollectionCard from './CollectionCard';
 
 interface CollectionGridProps {
@@ -30,12 +30,17 @@ const CollectionGrid: React.FC<CollectionGridProps> = ({
       )}
       keyExtractor={(item) => item.id}
       numColumns={2}
-      columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 8 }}
+      columnWrapperStyle={{ justifyContent: 'space-between' }}
       style={[{ flex: 1 }, style]}
-      contentContainerStyle={{ paddingHorizontal: 8, paddingTop: 8, paddingBottom: 100 }}
+      contentContainerStyle={{ 
+        paddingHorizontal: 8, 
+        paddingTop: 16, 
+        paddingBottom: 120 
+      }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.1}
       showsVerticalScrollIndicator={false}
+      ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
     />
   );
 };

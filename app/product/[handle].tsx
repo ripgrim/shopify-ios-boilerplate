@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 import { useProduct } from '@/hooks/useShopifyData';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { optimizeShopifyImage } from '@/lib/utils';
 import { ShopifyProductVariant } from '@/types/shopify';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, ShoppingCart, Star } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProductPage() {
@@ -70,17 +72,17 @@ export default function ProductPage() {
 
     return (
         <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
+            <View className="px-6 py-4 bg-background">
+                <View className="flex-row items-center justify-between">
+                    <Button onPress={() => router.back()} variant="ghost" size="icon">
+                        <ArrowLeft size={18} color={iconColor} />
+                    </Button>
+                    <View className="w-10" />
+                </View>
+            </View>
             <ScrollView className="flex-1">
                 {/* Product Details */}
                 <View className="px-6 py-4">
-                    <View className="flex-row items-center justify-between mb-6">
-                        <Button onPress={() => router.back()} variant="ghost" size="icon">
-                            <ArrowLeft size={24} color={iconColor} />
-                        </Button>
-                        <Text className="text-xl font-bold text-foreground">Product Details</Text>
-                        <View className="w-10" />
-                    </View>
-
                     {/* Product Images */}
                     {images.length > 0 && (
                         <View className="mb-6">
@@ -107,7 +109,7 @@ export default function ProductPage() {
                                                 }`}
                                         >
                                             <Image
-                                                source={{ uri: image.url }}
+                                                source={{ uri: optimizeShopifyImage(image.url, 128, 128) }}
                                                 className="rounded-lg p-2 w-24 h-24 aspect-square"
                                                 resizeMode="cover"
                                             />
@@ -123,16 +125,16 @@ export default function ProductPage() {
                         <Text className="text-2xl font-bold text-foreground mb-2">
                             {product.title}
                         </Text>
-                        <Text className="text-lg text-muted-foreground mb-4">
+                        <Text className="text-lg font-medium text-muted-foreground mb-4">
                             {product.vendor}
                         </Text>
-                        <Text className="text-2xl font-bold text-primary mb-4">
+                        <Text className="text-2xl font-semibold text-primary mb-4">
                             {formatPrice(currentPrice)}
                         </Text>
 
                         {variants.length > 1 && (
                             <View className="mb-4">
-                                <Text className="text-lg font-semibold text-foreground mb-2">Variant</Text>
+                                <Text className="text-lg font-medium text-foreground mb-2">Variant</Text>
                                 <View className="flex-row flex-wrap gap-2">
                                     {variants.map(variant => {
                                         const selected = (currentVariant?.id === variant.id);
@@ -163,10 +165,10 @@ export default function ProductPage() {
                     {/* Product Description */}
                     {product.description && (
                         <View className="mb-6">
-                            <Text className="text-xl font-semibold text-foreground mb-3">
+                            <Text className="text-xl font-bold text-foreground mb-3">
                                 Description
                             </Text>
-                            <Text className="text-base text-muted-foreground leading-6">
+                            <Text className="text-base font-medium text-muted-foreground leading-6">
                                 {product.description}
                             </Text>
                         </View>
@@ -197,7 +199,7 @@ export default function ProductPage() {
                     variant={currentAvailability ? "default" : "secondary"}
                 >
                     <ShoppingCart size={15} color={backgroundColor} className="mr-3" />
-                    <Text className="text-background font-semibold text-lg">
+                    <Text className="text-background font-bold text-lg">
                         {currentAvailability ? 'Add to Cart' : 'Out of Stock'}
                     </Text>
                 </Button>

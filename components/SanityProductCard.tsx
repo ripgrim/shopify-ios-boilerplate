@@ -1,6 +1,7 @@
+import { Text } from '@/components/ui/text';
 import { SanityProduct } from '@/types/sanity';
 import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
 
 interface SanityProductCardProps {
   product: SanityProduct;

@@ -1,6 +1,7 @@
+import { Text } from '@/components/ui/text';
 import { ShopifyProduct } from '@/types/shopify';
 import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
 
 interface ProductCardProps {
   product: ShopifyProduct;
@@ -19,12 +20,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onPress, style }) =>
 
   return (
     <TouchableOpacity 
-      className="bg-card rounded-xl mx-2 my-1.5 border border-border"
+      className="bg-card rounded-xl mx-2 my-1.5"
       style={style}
       onPress={() => onPress?.(product)}
       activeOpacity={0.8}
     >
-      <View className="rounded-xl overflow-hidden">
+      <View className="rounded-xl overflow-hidden border border-border aspect-square">
         {firstImage ? (
           <Image
             source={{ uri: firstImage.url }}

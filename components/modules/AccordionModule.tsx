@@ -1,6 +1,7 @@
+import { Text } from '@/components/ui/text';
 import { AccordionModule } from '@/types/sanity';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 interface AccordionModuleProps {
   module: AccordionModule;

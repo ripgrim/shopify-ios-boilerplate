@@ -11,10 +11,22 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
-  const { login, isLoading, error, clearError, enableBiometrics, authenticateWithBiometrics, biometricEnabled } = useAuth();
+  const authHook = useAuth();
   const [showBiometricOption, setShowBiometricOption] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const iconColor = useThemeColor({}, 'background');
+
+  // Destructure with defaults to prevent undefined errors
+  const {
+    login = async () => { throw new Error('Login not available'); },
+    isLoading = false,
+    error = null,
+    clearError = () => {},
+    enableBiometrics = async () => false,
+    authenticateWithBiometrics = async () => false,
+    biometricEnabled = false
+  } = authHook || {};
+
   React.useEffect(() => {
     // Check if biometric authentication is available
     const checkBiometrics = async () => {
@@ -69,9 +81,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
       <View className="flex-1 justify-center items-center px-8">
-        <View className="bg-card rounded-3xl p-8 w-full max-w-sm shadow-lg">
+        <View className="bg-card rounded-xl p-8 w-full max-w-sm">
           <View className="items-center mb-8">
             <View className="w-16 h-16 bg-primary rounded-full items-center justify-center mb-4">
               <User size={32} className="text-primary-foreground" color={iconColor}/>

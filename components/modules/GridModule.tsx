@@ -1,6 +1,7 @@
+import { Text } from '@/components/ui/text';
 import { GridModule } from '@/types/sanity';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 interface GridModuleProps {
   module: GridModule;

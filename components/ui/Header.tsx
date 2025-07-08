@@ -1,9 +1,10 @@
+import { Text } from "@/components/ui/text";
 import { useSanitySettings } from "@/hooks/useSanityData";
 import { useStore } from "@/hooks/useShopifyData";
 import { useLinkHandler } from "@/lib/linkHandler";
 import { router } from "expo-router";
 import { ShoppingCart } from "lucide-react-native";
-import { Image, SafeAreaView, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { Image, SafeAreaView, ScrollView, TouchableOpacity, useColorScheme, View } from "react-native";
 
 export const Header = () => {
     const { data: settings } = useSanitySettings();
@@ -20,7 +21,7 @@ export const Header = () => {
                 className="px-2 py-1 mr-4"
                 onPress={() => handleLinkPress(link)}
             >
-                <Text className="text-sm font-regular text-foreground/70">{title}</Text>
+                <Text className="text-md font-regular text-foreground/70">{title}</Text>
             </TouchableOpacity>
         );
     };

@@ -35,7 +35,7 @@
           "backgroundColor": "#FFFFFF",
           "image": "./assets/images/epoc.png",
           "dark": {
-            "image": "./assets/images/epoc.png",
+            "image": "./assets/images/epoc-light.png",
             "backgroundColor": "#000000"
           },
           "imageWidth": 200
@@ -54,7 +54,8 @@
           "motionPermission": "Allow $(PRODUCT_NAME) to access your device motion."
         }
       ],
-      "@bacons/apple-targets"
+      "@bacons/apple-targets",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
@@ -63,8 +64,36 @@
       "appEnv": "development",
       "router": {},
       "eas": {
-        "projectId": "a69e341e-6ccd-4853-81a3-e233b9f3d58f"
+        "projectId": "a69e341e-6ccd-4853-81a3-e233b9f3d58f",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "bundleIdentifier": "com.ripgrim.shopifyiosboilerplate.widget",
+                  "targetName": "widget",
+                  "entitlements": {
+                    "appGroups": [
+                      "group.com.ripgrim.shopifyiosboilerplate"
+                    ],
+                    "com.apple.security.application-groups": [
+                      "group.com.ripgrim.shopifyiosboilerplate"
+                    ]
+                  }
+                },
+                {
+                  "bundleIdentifier": "com.ripgrim.shopifyiosboilerplate.action",
+                  "targetName": "action",
+                  "entitlements": {}
+                }
+              ]
+            }
+          }
+        }
       }
+    },
+    "android": {
+      "package": "com.ripgrim.shopifyiosboilerplate"
     }
   }
 }

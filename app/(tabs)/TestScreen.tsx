@@ -1,9 +1,10 @@
 // import { useAuth } from '@/hooks/useCustomerAccount';
 // import { CUSTOMER_QUERY, customerAccountApi } from '@/services/customerAccountApi';
+import { Text } from '@/components/ui/text';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
@@ -389,12 +390,13 @@ export default function TestScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1 p-4">
+    <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
+      <View className="px-6 py-6 pb-2">
         <Text className="text-2xl font-bold text-foreground mb-6">
           Expo Modules Test
         </Text>
-
+      </View>
+      <ScrollView className="flex-1 p-4">
         <TouchableOpacity
           onPress={() => console.clear()}
           className="bg-primary p-4 rounded-xl mb-6"

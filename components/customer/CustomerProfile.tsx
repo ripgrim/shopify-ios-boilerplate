@@ -42,15 +42,16 @@ export default function CustomerProfile({ onEditProfile, onViewOrders, onManageA
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
+      <View className="px-6 py-6 pb-2">
+        <AccountHeader />
+      </View>
       <ScrollView className="flex-1">
-        <View className="px-6 py-8">
-          <AccountHeader />
-          
-          <ProfileCard 
+        <View className="px-6">
+          <ProfileCard
             onEdit={onEditProfile}
-          />
-          
+          /> 
+
           <AccountActions
             onEditProfile={onEditProfile}
             onViewOrders={onViewOrders}

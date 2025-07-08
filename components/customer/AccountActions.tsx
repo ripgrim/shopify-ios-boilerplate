@@ -87,9 +87,9 @@ export default function AccountActions({ onEditProfile, onViewOrders, onManageAd
       <Button
         onPress={handleLogout}
         variant="destructive"
-        className="bg-destructive/70 border border-border rounded-2xl p-4 flex-row items-center justify-start min-h-16 space-x-4"
+        className="bg-destructive/10 border border-destructive rounded-2xl p-4 flex-row items-center justify-start min-h-16 space-x-4"
       >
-        <LogOut size={20} color={"#fff"} className="mr-6" />
+        <LogOut size={20} color={"#f00"} className="mr-6" />
         <View className="flex-1 ml-4">
           <Text className="text-card-foreground font-medium">Sign Out</Text>
           <Text className="text-muted-foreground text-sm">Sign out of your account</Text>

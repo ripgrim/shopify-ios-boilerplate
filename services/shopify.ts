@@ -16,9 +16,11 @@ class ShopifyService {
 
 
   // products
-  async getProducts(first: number = 20, after?: string): Promise<ShopifyProductConnection> {
+  async getProducts(first: number = 20, after?: string, imageWidth: number = 400, imageHeight: number = 400): Promise<ShopifyProductConnection> {
+    console.log(`🖼️ Fetching products with image transform: ${imageWidth}x${imageHeight}`);
+    
     const query = `
-      query GetProducts($first: Int!, $after: String) {
+      query GetProducts($first: Int!, $after: String, $imageTransform: ImageTransformInput) {
         products(first: $first, after: $after) {
           edges {
             node {
@@ -58,7 +60,7 @@ class ShopifyService {
                 edges {
                   node {
                     id
-                    url
+                    url(transform: $imageTransform)
                     altText
                     width
                     height
@@ -86,7 +88,7 @@ class ShopifyService {
                     quantityAvailable
                     image {
                       id
-                      url
+                      url(transform: $imageTransform)
                       altText
                       width
                       height
@@ -111,14 +113,26 @@ class ShopifyService {
       }
     `;
 
-    const variables = { first, after };
+    const variables = { 
+      first, 
+      after,
+      imageTransform: { maxWidth: imageWidth, maxHeight: imageHeight }
+    };
+    console.log('🔧 GraphQL variables:', variables);
+    
     const response = await this.client.request(query, variables) as { products: ShopifyProductConnection };
+    
+    // Log a sample image URL to verify transform
+    if (response.products.edges[0]?.node.images.edges[0]?.node.url) {
+      console.log('🎯 Sample transformed image URL:', response.products.edges[0].node.images.edges[0].node.url);
+    }
+    
     return response.products;
   }
 
-  async getProductByHandle(handle: string): Promise<ShopifyProduct | null> {
+  async getProductByHandle(handle: string, imageWidth: number = 800, imageHeight: number = 800): Promise<ShopifyProduct | null> {
     const query = `
-      query GetProductByHandle($handle: String!) {
+      query GetProductByHandle($handle: String!, $imageTransform: ImageTransformInput) {
         productByHandle(handle: $handle) {
           id
           title
@@ -156,7 +170,7 @@ class ShopifyService {
             edges {
               node {
                 id
-                url
+                url(transform: $imageTransform)
                 altText
                 width
                 height
@@ -184,7 +198,7 @@ class ShopifyService {
                 quantityAvailable
                 image {
                   id
-                  url
+                  url(transform: $imageTransform)
                   altText
                   width
                   height
@@ -201,16 +215,19 @@ class ShopifyService {
       }
     `;
 
-    const variables = { handle };
+    const variables = { 
+      handle,
+      imageTransform: { maxWidth: imageWidth, maxHeight: imageHeight }
+    };
     const response = await this.client.request(query, variables) as { productByHandle: ShopifyProduct | null };
     return response.productByHandle;
   }
 
   // collections
 
-  async getCollections(first: number = 20, after?: string): Promise<ShopifyCollectionConnection> {
+  async getCollections(first: number = 20, after?: string, imageWidth: number = 400, imageHeight: number = 400): Promise<ShopifyCollectionConnection> {
     const query = `
-      query GetCollections($first: Int!, $after: String) {
+      query GetCollections($first: Int!, $after: String, $imageTransform: ImageTransformInput) {
         collections(first: $first, after: $after) {
           edges {
             node {
@@ -221,7 +238,7 @@ class ShopifyService {
               descriptionHtml
               image {
                 id
-                url
+                url(transform: $imageTransform)
                 altText
                 width
                 height
@@ -242,7 +259,7 @@ class ShopifyService {
                       edges {
                         node {
                           id
-                          url
+                          url(transform: $imageTransform)
                           altText
                           width
                           height
@@ -264,14 +281,18 @@ class ShopifyService {
       }
     `;
 
-    const variables = { first, after };
+    const variables = { 
+      first, 
+      after,
+      imageTransform: { maxWidth: imageWidth, maxHeight: imageHeight }
+    };
     const response = await this.client.request(query, variables) as { collections: ShopifyCollectionConnection };
     return response.collections;
   }
 
-  async getCollectionByHandle(handle: string): Promise<ShopifyCollection | null> {
+  async getCollectionByHandle(handle: string, imageWidth: number = 400, imageHeight: number = 400): Promise<ShopifyCollection | null> {
     const query = `
-      query GetCollectionByHandle($handle: String!) {
+      query GetCollectionByHandle($handle: String!, $imageTransform: ImageTransformInput) {
         collectionByHandle(handle: $handle) {
           id
           title
@@ -280,7 +301,7 @@ class ShopifyService {
           descriptionHtml
           image {
             id
-            url
+            url(transform: $imageTransform)
             altText
             width
             height
@@ -307,7 +328,7 @@ class ShopifyService {
                   edges {
                     node {
                       id
-                      url
+                      url(transform: $imageTransform)
                       altText
                       width
                       height
@@ -321,7 +342,10 @@ class ShopifyService {
       }
     `;
 
-    const variables = { handle };
+    const variables = { 
+      handle,
+      imageTransform: { maxWidth: imageWidth, maxHeight: imageHeight }
+    };
     const response = await this.client.request(query, variables) as { collectionByHandle: ShopifyCollection | null };
     return response.collectionByHandle;
   }

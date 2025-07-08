@@ -251,6 +251,27 @@ export const useAuth = () => {
   const authStore = useAuthStore();
   const queryClient = useQueryClient();
 
+  // Add safety check for undefined authStore
+  if (!authStore) {
+    console.error('Auth store is not properly initialized');
+    return {
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      tokens: null,
+      error: 'Auth store not initialized',
+      biometricEnabled: false,
+      login: async () => { throw new Error('Auth store not initialized'); },
+      logout: async () => { throw new Error('Auth store not initialized'); },
+      refreshTokens: async () => { throw new Error('Auth store not initialized'); },
+      checkAuthStatus: async () => { throw new Error('Auth store not initialized'); },
+      clearError: () => { console.warn('Auth store not initialized'); },
+      enableBiometrics: async () => false,
+      authenticateWithBiometrics: async () => false,
+      setUser: () => { console.warn('Auth store not initialized'); },
+    };
+  }
+
   const login = async () => {
     try {
       await authStore.login();

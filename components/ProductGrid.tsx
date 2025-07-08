@@ -1,6 +1,6 @@
 import { ShopifyProduct } from '@/types/shopify';
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, View } from 'react-native';
 import ProductCard from './ProductCard';
 
 interface ProductGridProps {
@@ -9,7 +9,7 @@ interface ProductGridProps {
   onEndReached?: () => void;
   loading?: boolean;
   style?: any;
-}
+  }
 
 const ProductGrid: React.FC<ProductGridProps> = ({
   products,
@@ -30,12 +30,17 @@ const ProductGrid: React.FC<ProductGridProps> = ({
       )}
       keyExtractor={(item) => item.id}
       numColumns={2}
-      columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 8 }}
+      columnWrapperStyle={{ justifyContent: 'space-between' }}
       style={[{ flex: 1 }, style]}
-      contentContainerStyle={{ paddingHorizontal: 8, paddingTop: 8, paddingBottom: 100 }}
+      contentContainerStyle={{
+        paddingHorizontal: 8,
+        paddingTop: 16,
+        paddingBottom: 120
+      }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.1}
       showsVerticalScrollIndicator={false}
+      ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
     />
   );
 };

@@ -5,10 +5,10 @@ import { ShopifyProductConnection } from '@/types/shopify';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useAuth } from './useCustomerAccount';
 
-export const useProducts = (first: number = 20) => {
+export const useProducts = (first: number = 20, imageWidth: number = 400, imageHeight: number = 400) => {
   return useInfiniteQuery({
-    queryKey: ['products', first],
-    queryFn: ({ pageParam }) => shopifyService.getProducts(first, pageParam),
+    queryKey: ['products', first, imageWidth, imageHeight],
+    queryFn: ({ pageParam }) => shopifyService.getProducts(first, pageParam, imageWidth, imageHeight),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage: ShopifyProductConnection) => 
       lastPage.pageInfo.hasNextPage ? lastPage.pageInfo.endCursor : undefined,
@@ -19,20 +19,20 @@ export const useProducts = (first: number = 20) => {
   });
 };
 
-export const useProduct = (handle: string, enabled: boolean = true) => {
+export const useProduct = (handle: string, enabled: boolean = true, imageWidth: number = 800, imageHeight: number = 800) => {
   return useQuery({
-    queryKey: ['product', handle],
-    queryFn: () => shopifyService.getProductByHandle(handle),
+    queryKey: ['product', handle, imageWidth, imageHeight],
+    queryFn: () => shopifyService.getProductByHandle(handle, imageWidth, imageHeight),
     enabled: enabled && !!handle,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     retry: 3,
   });
 };
 
-export const useCollections = (first: number = 20) => {
+export const useCollections = (first: number = 20, imageWidth: number = 400, imageHeight: number = 400) => {
   return useInfiniteQuery({
-    queryKey: ['collections', first],
-    queryFn: ({ pageParam }) => shopifyService.getCollections(first, pageParam),
+    queryKey: ['collections', first, imageWidth, imageHeight],
+    queryFn: ({ pageParam }) => shopifyService.getCollections(first, pageParam, imageWidth, imageHeight),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => 
       lastPage.pageInfo.hasNextPage ? lastPage.pageInfo.endCursor : undefined,
@@ -43,10 +43,10 @@ export const useCollections = (first: number = 20) => {
   });
 };
 
-export const useCollection = (handle: string, enabled: boolean = true) => {
+export const useCollection = (handle: string, enabled: boolean = true, imageWidth: number = 400, imageHeight: number = 400) => {
   return useQuery({
-    queryKey: ['collection', handle],
-    queryFn: () => shopifyService.getCollectionByHandle(handle),
+    queryKey: ['collection', handle, imageWidth, imageHeight],
+    queryFn: () => shopifyService.getCollectionByHandle(handle, imageWidth, imageHeight),
     enabled: enabled && !!handle,
     staleTime: 10 * 60 * 1000,
     retry: 3,

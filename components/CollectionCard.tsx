@@ -1,6 +1,7 @@
+import { Text } from '@/components/ui/text';
 import { ShopifyCollection } from '@/types/shopify';
 import React from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
 
 interface CollectionCardProps {
   collection: ShopifyCollection;
@@ -12,34 +13,35 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onPress, st
   const image = collection.image;
 
   return (
-    <TouchableOpacity
-      className="rounded-xl my-2 shadow-sm"
+    <TouchableOpacity 
+      className="bg-card rounded-xl mx-2 my-1.5"
       style={style}
       onPress={() => onPress?.(collection)}
       activeOpacity={0.8}
     >
-      <View style={{ height: 200 }} className="rounded-xl overflow-hidden relative">
+      <View className="rounded-xl overflow-hidden border border-border aspect-square">
         {image ? (
           <Image
             source={{ uri: image.url }}
-            style={{ width: '100%', height: '100%' }}
-            resizeMode="cover"
+            style={{ width: '100%', height: 200 }}
+            resizeMode="contain"
           />
         ) : (
-          <View style={{ width: '100%', height: '100%' }} className="bg-muted/30 justify-center items-center">
+          <View style={{ width: '100%', height: 200 }} className="bg-muted/30 justify-center items-center">
             <Text className="text-muted-foreground text-sm">No Image</Text>
           </View>
         )}
-        <View className="absolute bottom-0 left-0 right-0 bg-black/60 p-4">
-          <Text className="text-lg font-bold text-white mb-1" numberOfLines={2}>
-            {collection.title}
+      </View>
+      
+      <View className="p-3">
+        <Text className="text-base font-semibold text-card-foreground mb-1" numberOfLines={2}>
+          {collection.title}
+        </Text>
+        {collection.description && (
+          <Text className="text-sm text-muted-foreground" numberOfLines={2}>
+            {collection.description}
           </Text>
-          {collection.description ? (
-            <Text className="text-sm text-gray-200 leading-5" numberOfLines={3}>
-              {collection.description}
-            </Text>
-          ) : null}
-        </View>
+        )}
       </View>
     </TouchableOpacity>
   );
