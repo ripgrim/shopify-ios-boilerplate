@@ -1,19 +1,12 @@
 // import { useAuth } from '@/hooks/useCustomerAccount';
 // import { CUSTOMER_QUERY, customerAccountApi } from '@/services/customerAccountApi';
+import { useNotifications } from '@/hooks/useNotifications';
 import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
-import { Alert, Keyboard, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
-import {
-  DynamicIslandTimerType,
-  LiveActivityState,
-  LiveActivityStyles,
-  startActivity,
-  stopActivity,
-  updateActivity
-} from 'expo-live-activity';
 import { DeviceMotion } from 'expo-sensors';
 
 Notifications.setNotificationHandler({
@@ -40,79 +33,8 @@ export default function TestScreen() {
   const [notificationBody, setNotificationBody] = useState('This is a custom notification!');
   const [notificationData, setNotificationData] = useState('{"key": "value"}');
 
-  const [activityId, setActivityID] = useState<string | null>();
-  const [title, onChangeTitle] = useState("Title");
-  const [subtitle, onChangeSubtitle] = useState("This is a subtitle");
-  const [imageName, onChangeImageName] = useState("logo");
-  const [date, setDate] = useState(new Date());
-  const [timerType, setTimerType] = useState<DynamicIslandTimerType>("circular");
-  const [passSubtitle, setPassSubtitle] = useState(true);
-  const [passImage, setPassImage] = useState(true);
-  const [passDate, setPassDate] = useState(true);
-
-  let backgroundColor = "001A72";
-  let titleColor = "EBEBF0";
-  let subtitleColor = "#FFFFFF75";
-  let progressViewTint = "38ACDD";
-  let progessViewLabelColor = "#FFFFFF";
-
-  const startLiveActivity = () => {
-    Keyboard.dismiss();
-    const state: LiveActivityState = {
-      title: title,
-      subtitle: passSubtitle ? subtitle : undefined,
-      date: passDate ? date.getTime() : undefined,
-      imageName: passImage ? imageName : undefined,
-      dynamicIslandImageName: "logo-island",
-    };
-
-    const styles: LiveActivityStyles = {
-      backgroundColor: backgroundColor,
-      titleColor: titleColor,
-      subtitleColor: subtitleColor,
-      progressViewTint: progressViewTint,
-      progressViewLabelColor: progessViewLabelColor,
-      timerType: timerType,
-    };
-    try {
-      const id = startActivity(state, styles);
-      console.log(id);
-      setActivityID(id);
-    } catch (e) {
-      console.error("Starting activity failed! " + e);
-    }
-  };
-
-  const stopLiveActivity = () => {
-    const state: LiveActivityState = {
-      title: title,
-      subtitle: subtitle,
-      date: Date.now(),
-      imageName: imageName,
-      dynamicIslandImageName: "logo-island",
-    };
-    try {
-      activityId && stopActivity(activityId, state);
-      setActivityID(null);
-    } catch (e) {
-      console.error("Stopping activity failed! " + e);
-    }
-  };
-
-  const updateLiveActivity = () => {
-    const state: LiveActivityState = {
-      title: title,
-      subtitle: subtitle,
-      date: date.getTime(),
-      imageName: imageName,
-      dynamicIslandImageName: "logo-island",
-    };
-    try {
-      activityId && updateActivity(activityId, state);
-    } catch (e) {
-      console.error("Updating activity failed! " + e);
-    }
-  };
+  // Example using the new useNotifications hook
+  const notifications = useNotifications();
 
   // Device motion listener
   useEffect(() => {
@@ -392,8 +314,8 @@ export default function TestScreen() {
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: "HI!!!!!! WASSUP!!!!!!",
-          body: "HI MY NAME IS EXPO!! UR GAY!",
+          title: "mazeincoding?",
+          body: "MORE LIKE NOT CODING CUS U SUCK!! 😂",
           data: { data: 'WHAT DOES THIS DO?' },
         },
         trigger: {
@@ -484,6 +406,38 @@ export default function TestScreen() {
             🧹 Clear Console Logs
           </Text>
         </TouchableOpacity>
+
+        <Text className="text-lg font-semibold text-foreground mb-4">
+          🚀 Easy Notifications Hook
+        </Text>
+        <View className="flex-row flex-wrap gap-3 mb-6">
+          <TouchableOpacity
+            onPress={() => notifications.success('Operation completed!')}
+            className="bg-green-600 p-4 rounded-xl shadow-lg shadow-green-600/20 flex-1 min-w-[45%]"
+          >
+            <Text className="text-white text-center text-sm font-semibold">
+              ✅ Success
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => notifications.error('Something went wrong!')}
+            className="bg-red-600 p-4 rounded-xl shadow-lg shadow-red-600/20 flex-1 min-w-[45%]"
+          >
+            <Text className="text-white text-center text-sm font-semibold">
+              ❌ Error
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => notifications.reminder('Check your orders', 5)}
+            className="bg-purple-600 p-4 rounded-xl shadow-lg shadow-purple-600/20 w-full"
+          >
+            <Text className="text-white text-center text-sm font-semibold">
+              ⏰ Reminder (5 min)
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <Text className="text-lg font-semibold text-foreground mb-4">
           📱 Notifications
@@ -614,85 +568,6 @@ export default function TestScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        <Text className="text-lg font-semibold text-foreground mb-4">
-          🔴 Live Activities
-        </Text>
-        <Text className="text-red-600 text-sm mb-4">
-          ⚠️ iOS 16+ required. Development build needed (not available in Expo Go).
-        </Text>
-
-        <View className="mb-6">
-          <Text className="text-sm font-medium text-foreground mb-2">Activity Title:</Text>
-          <TextInput
-            value={title}
-            onChangeText={onChangeTitle}
-            placeholder="Enter activity title"
-            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
-          />
-
-          <Text className="text-sm font-medium text-foreground mb-2">Activity Subtitle:</Text>
-          <TextInput
-            value={subtitle}
-            onChangeText={onChangeSubtitle}
-            placeholder="Enter activity subtitle"
-            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
-          />
-
-          <Text className="text-sm font-medium text-foreground mb-2">Image Name:</Text>
-          <TextInput
-            value={imageName}
-            onChangeText={onChangeImageName}
-            placeholder="Enter image name"
-            className="bg-white p-3 rounded-lg border border-gray-300 mb-3"
-          />
-        </View>
-
-        <View className="flex-row flex-wrap gap-3 mb-6">
-          <TouchableOpacity
-            onPress={startLiveActivity}
-            disabled={!!activityId}
-            className={`p-4 rounded-xl shadow-lg flex-1 min-w-[30%] ${
-              activityId ? 'bg-gray-400' : 'bg-green-600 shadow-green-600/20'
-            }`}
-          >
-            <Text className="text-foreground text-center text-sm font-semibold">
-              ▶️ Start Activity
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={updateLiveActivity}
-            disabled={!activityId}
-            className={`p-4 rounded-xl shadow-lg flex-1 min-w-[30%] ${
-              !activityId ? 'bg-gray-400' : 'bg-blue-600 shadow-blue-600/20'
-            }`}
-          >
-            <Text className="text-foreground text-center text-sm font-semibold">
-              🔄 Update Activity
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={stopLiveActivity}
-            disabled={!activityId}
-            className={`p-4 rounded-xl shadow-lg flex-1 min-w-[30%] ${
-              !activityId ? 'bg-gray-400' : 'bg-red-600 shadow-red-600/20'
-            }`}
-          >
-            <Text className="text-foreground text-center text-sm font-semibold">
-              ⏹️ Stop Activity
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {activityId && (
-          <View className="bg-gray-100 p-4 rounded-xl mb-6">
-            <Text className="text-gray-800 text-sm font-semibold">
-              Active Activity ID: {activityId}
-            </Text>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );

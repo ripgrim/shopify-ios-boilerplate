@@ -3,7 +3,7 @@ import { useStore } from "@/hooks/useShopifyData";
 import { useLinkHandler } from "@/lib/linkHandler";
 import { router } from "expo-router";
 import { ShoppingCart } from "lucide-react-native";
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { Image, SafeAreaView, ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 
 export const Header = () => {
     const { data: settings } = useSanitySettings();
@@ -39,7 +39,12 @@ export const Header = () => {
                 {/* Logo */}
                 <TouchableOpacity onPress={() => router.push('/')} className="flex-row items-center gap-2 mb-3">
                     <View className="w-8 h-8 bg-primary rounded-lg justify-center items-center">
-                        <Text className="text-secondary text-sm font-bold">{abbreviateStoreName(store?.name || 'S')}</Text>
+                        {useColorScheme() === 'dark' ? (
+                            <Image source={require('@/assets/images/epoc-light.png')} className="w-8 h-8" resizeMode="contain" />
+                        ) : (
+                            <Image source={require('@/assets/images/epoc.png')} className="w-8 h-8" resizeMode="contain" />
+                        )}
+                        {/* <Text className="text-secondary text-sm font-bold">{abbreviateStoreName(store?.name || 'S')}</Text> */}
                     </View>
                     <Text className="text-lg font-bold text-foreground">{store?.name || 'Shop'}</Text>
                     <TouchableOpacity onPress={() => router.push('/(tabs)/SettingsScreen')} className="ml-auto">

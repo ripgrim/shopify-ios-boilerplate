@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "shopify-ios-boilerplate",
+    "name": "EPOC",
     "slug": "shopify-ios-boilerplate",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/epoc.png",
     "scheme": "shop.60857843806.app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,6 +13,12 @@
       "supportsTablet": true,
       "jsEngine": "jsc",
       "bundler": "metro",
+      "appleTeamId": "VN9SHTNZRC",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.ripgrim.shopifyiosboilerplate"
+        ]
+      },
       "bundleIdentifier": "com.ripgrim.shopifyiosboilerplate",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -36,24 +42,29 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/epoc.png",
+          "dark": {
+            "image": "./assets/images/epoc.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
         }
       ],
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
+          "icon": "./assets/images/epoc.png",
           "color": "#ffffff"
         }
       ],
-      ["expo-live-activity"],
-      ["expo-sensors",
+      [
+        "expo-sensors",
         {
           "motionPermission": "Allow $(PRODUCT_NAME) to access your device motion."
-        }]
+        }
+      ],
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true
