@@ -20,9 +20,6 @@ Notifications.setNotificationHandler({
 });
 
 export default function TestScreen() {
-  // const { login, logout, isAuthenticated } = useAuth();
-  // const [isLoading, setIsLoading] = useState(false);
-
   // Expo module states
   const [notificationPermission, setNotificationPermission] = useState<Notifications.NotificationPermissionsStatus | null>(null);
   const [deviceMotionData, setDeviceMotionData] = useState<any>(null);

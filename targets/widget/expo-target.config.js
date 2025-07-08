@@ -8,8 +8,8 @@ module.exports = config => ({
 
   colors: {
     text: {
-      light: "#FFFFFF",
-      dark: "#000000",
+      light: "#000000",
+      dark: "#FFFFFF",
     },
     background: {
       light: "#FFFFFF",

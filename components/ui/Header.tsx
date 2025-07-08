@@ -40,9 +40,9 @@ export const Header = () => {
                 <TouchableOpacity onPress={() => router.push('/')} className="flex-row items-center gap-2 mb-3">
                     <View className="w-8 h-8 bg-primary rounded-lg justify-center items-center">
                         {useColorScheme() === 'dark' ? (
-                            <Image source={require('@/assets/images/epoc-light.png')} className="w-8 h-8" resizeMode="contain" />
-                        ) : (
                             <Image source={require('@/assets/images/epoc.png')} className="w-8 h-8" resizeMode="contain" />
+                        ) : (
+                            <Image source={require('@/assets/images/epoc-light.png')} className="w-8 h-8" resizeMode="contain" />
                         )}
                         {/* <Text className="text-secondary text-sm font-bold">{abbreviateStoreName(store?.name || 'S')}</Text> */}
                     </View>

@@ -7,11 +7,9 @@
     "icon": "./assets/images/epoc.png",
     "scheme": "shop.60857843806.app",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
-      "jsEngine": "jsc",
       "bundler": "metro",
       "appleTeamId": "VN9SHTNZRC",
       "entitlements": {
@@ -23,14 +21,6 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.ripgrim.shopifyiosboilerplate"
     },
     "web": {
       "bundler": "metro",
