@@ -5,7 +5,7 @@ import { ShopifyProductConnection } from '@/types/shopify';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useAuth } from './useCustomerAccount';
 
-export const useProducts = (first: number = 20, imageWidth: number = 400, imageHeight: number = 400) => {
+export const useProducts = (first: number = 20, imageWidth: number = 250, imageHeight: number = 250) => {
   return useInfiniteQuery({
     queryKey: ['products', first, imageWidth, imageHeight],
     queryFn: ({ pageParam }) => shopifyService.getProducts(first, pageParam, imageWidth, imageHeight),
