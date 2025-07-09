@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SettingsScreen = () => {
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-background">
       <View className="p-6">
         <Text className="text-2xl font-bold text-foreground mb-6">
           Settings
