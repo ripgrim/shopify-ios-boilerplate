@@ -1,4 +1,5 @@
 import config from '@/config/env';
+import { checkNetworkBeforeApiCall, NetworkError } from '@/hooks/useNetworkStatus';
 import {
   CartAttributesUpdateInput,
   CartBuyerIdentityUpdateInput,
@@ -29,6 +30,14 @@ class CartApiService {
         'Content-Type': 'application/json',
       },
     });
+  }
+
+  // Network check helper
+  private async checkNetwork(): Promise<void> {
+    const isOnline = await checkNetworkBeforeApiCall();
+    if (!isOnline) {
+      throw new NetworkError('Unable to connect to the internet. Please check your connection and try again.');
+    }
   }
 
   // GraphQL Fragments
@@ -203,6 +212,7 @@ class CartApiService {
 
   // Cart Query
   async getCart(cartId: string): Promise<ShopifyCart | null> {
+    await this.checkNetwork();
     const query = `
       query GetCart($cartId: ID!) {
         cart(id: $cartId) {
@@ -223,6 +233,7 @@ class CartApiService {
 
   // Cart Create Mutation
   async createCart(input: CartCreateInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartCreate($input: CartInput!) {
         cartCreate(input: $input) {
@@ -260,6 +271,7 @@ class CartApiService {
 
   // Cart Lines Add Mutation
   async addCartLines(input: CartLinesAddInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
         cartLinesAdd(cartId: $cartId, lines: $lines) {
@@ -300,6 +312,7 @@ class CartApiService {
 
   // Cart Lines Update Mutation
   async updateCartLines(input: CartLinesUpdateInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
         cartLinesUpdate(cartId: $cartId, lines: $lines) {
@@ -340,6 +353,7 @@ class CartApiService {
 
   // Cart Lines Remove Mutation
   async removeCartLines(input: CartLinesRemoveInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
         cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
@@ -380,6 +394,7 @@ class CartApiService {
 
   // Cart Buyer Identity Update Mutation
   async updateCartBuyerIdentity(input: CartBuyerIdentityUpdateInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
         cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
@@ -420,6 +435,7 @@ class CartApiService {
 
   // Cart Attributes Update Mutation
   async updateCartAttributes(input: CartAttributesUpdateInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartAttributesUpdate($cartId: ID!, $attributes: [AttributeInput!]!) {
         cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
@@ -460,6 +476,7 @@ class CartApiService {
 
   // Cart Discount Codes Update Mutation
   async updateCartDiscountCodes(input: CartDiscountCodesUpdateInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]!) {
         cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
@@ -500,6 +517,7 @@ class CartApiService {
 
   // Cart Note Update Mutation
   async updateCartNote(input: CartNoteUpdateInput): Promise<ShopifyCart> {
+    await this.checkNetwork();
     const mutation = `
       mutation CartNoteUpdate($cartId: ID!, $note: String!) {
         cartNoteUpdate(cartId: $cartId, note: $note) {
