@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -22,15 +22,6 @@ const Tabs = withLayoutContext<
 export default function TabLayout() {
   const { effectiveColorScheme } = useColorScheme();
   const { track } = useAnalytics();
-
-  useEffect(() => {
-    track('screen_viewed', {
-      screen_name: 'Home',
-    });
-    console.log('track', track('screen_viewed', {
-      screen_name: 'Home',
-    }));
-  }, []);
 
   return (
     <Tabs

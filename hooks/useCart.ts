@@ -1,5 +1,5 @@
-import { useCart as useCartContext } from '../components/cart/CartProvider';
-import { CartLine } from '../types/cart';
+import { useCart as useCartContext } from "../components/cart/CartProvider";
+import { CartLine } from "../types/cart";
 
 // Re-export the main useCart hook from the provider
 export const useCart = useCartContext;
@@ -9,23 +9,30 @@ export const useCartUtils = () => {
   const cart = useCartContext();
 
   // Format price utility
-  const formatPrice = (amount: string, currencyCode: string, locale: string = 'en-US') => {
+  const formatPrice = (
+    amount: string,
+    currencyCode: string,
+    locale: string = "en-US"
+  ) => {
     const formatter = new Intl.NumberFormat(locale, {
-      style: 'currency',
+      style: "currency",
       currency: currencyCode,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
-    const numericAmount = Math.round(parseFloat(amount) * 100) / 100;
+    // Parse as decimal to avoid floating point errors
+    const numericAmount = parseFloat(amount);
     return formatter.format(numericAmount);
   };
 
   // Get cart item by merchandise ID
   const getCartItem = (merchandiseId: string): CartLine | undefined => {
-    return cart.lines.find(line => line.merchandise.id === merchandiseId);
+    return cart.lines.find((line) => line.merchandise.id === merchandiseId);
   };
 
   // Check if item is in cart
   const isInCart = (merchandiseId: string): boolean => {
-    return cart.lines.some(line => line.merchandise.id === merchandiseId);
+    return cart.lines.some((line) => line.merchandise.id === merchandiseId);
   };
 
   // Get item quantity in cart
@@ -55,48 +62,80 @@ export const useCartUtils = () => {
 
     const { cost } = cart.cart;
     return {
-      subtotal: formatPrice(cost.subtotalAmount.amount, cost.subtotalAmount.currencyCode),
-      total: formatPrice(cost.totalAmount.amount, cost.totalAmount.currencyCode),
-      tax: cost.totalTaxAmount ? formatPrice(cost.totalTaxAmount.amount, cost.totalTaxAmount.currencyCode) : null,
-      duty: cost.totalDutyAmount ? formatPrice(cost.totalDutyAmount.amount, cost.totalDutyAmount.currencyCode) : null,
-      checkoutCharge: cost.checkoutChargeAmount ? formatPrice(cost.checkoutChargeAmount.amount, cost.checkoutChargeAmount.currencyCode) : null,
+      subtotal: formatPrice(
+        cost.subtotalAmount.amount,
+        cost.subtotalAmount.currencyCode
+      ),
+      total: formatPrice(
+        cost.totalAmount.amount,
+        cost.totalAmount.currencyCode
+      ),
+      tax: cost.totalTaxAmount
+        ? formatPrice(
+            cost.totalTaxAmount.amount,
+            cost.totalTaxAmount.currencyCode
+          )
+        : null,
+      duty: cost.totalDutyAmount
+        ? formatPrice(
+            cost.totalDutyAmount.amount,
+            cost.totalDutyAmount.currencyCode
+          )
+        : null,
+      checkoutCharge: cost.checkoutChargeAmount
+        ? formatPrice(
+            cost.checkoutChargeAmount.amount,
+            cost.checkoutChargeAmount.currencyCode
+          )
+        : null,
     };
   };
 
   // Bulk operations
-  const addMultipleItems = async (items: { merchandiseId: string; quantity: number; attributes?: { key: string; value: string }[] }[]) => {
-    const promises = items.map(item => 
+  const addMultipleItems = async (
+    items: {
+      merchandiseId: string;
+      quantity: number;
+      attributes?: { key: string; value: string }[];
+    }[]
+  ) => {
+    const promises = items.map((item) =>
       cart.addToCart(item.merchandiseId, item.quantity, item.attributes)
     );
     const results = await Promise.allSettled(promises);
-    const failures = results.filter(r => r.status === 'rejected');
+    const failures = results.filter((r) => r.status === "rejected");
     if (failures.length > 0) {
       console.error(`Failed to add ${failures.length} items`);
     }
   };
 
-  const updateMultipleItems = async (updates: { lineId: string; quantity: number }[]) => {
-    const promises = updates.map(update => 
+  const updateMultipleItems = async (
+    updates: { lineId: string; quantity: number }[]
+  ) => {
+    const promises = updates.map((update) =>
       cart.updateCartLine(update.lineId, update.quantity)
     );
     const results = await Promise.allSettled(promises);
-    const failures = results.filter(r => r.status === 'rejected');
+    const failures = results.filter((r) => r.status === "rejected");
     if (failures.length > 0) {
       console.error(`Failed to update ${failures.length} items`);
     }
   };
 
   const removeMultipleItems = async (lineIds: string[]) => {
-    const promises = lineIds.map(lineId => cart.removeFromCart(lineId));
+    const promises = lineIds.map((lineId) => cart.removeFromCart(lineId));
     const results = await Promise.allSettled(promises);
-    const failures = results.filter(r => r.status === 'rejected');
+    const failures = results.filter((r) => r.status === "rejected");
     if (failures.length > 0) {
       console.error(`Failed to remove ${failures.length} items`);
     }
   };
 
   // Advanced cart operations
-  const incrementItem = async (merchandiseId: string, attributes?: { key: string; value: string }[]) => {
+  const incrementItem = async (
+    merchandiseId: string,
+    attributes?: { key: string; value: string }[]
+  ) => {
     const existingItem = getCartItem(merchandiseId);
     if (existingItem) {
       await cart.updateCartLine(existingItem.id, existingItem.quantity + 1);
@@ -116,9 +155,13 @@ export const useCartUtils = () => {
     }
   };
 
-  const setItemQuantity = async (merchandiseId: string, quantity: number, attributes?: { key: string; value: string }[]) => {
+  const setItemQuantity = async (
+    merchandiseId: string,
+    quantity: number,
+    attributes?: { key: string; value: string }[]
+  ) => {
     const existingItem = getCartItem(merchandiseId);
-    
+
     if (quantity <= 0) {
       if (existingItem) {
         await cart.removeFromCart(existingItem.id);
@@ -141,17 +184,17 @@ export const useCartUtils = () => {
     getItemQuantity,
     getCartMetrics,
     getCartSummary,
-    
+
     // Bulk operations
     addMultipleItems,
     updateMultipleItems,
     removeMultipleItems,
-    
+
     // Advanced operations
     incrementItem,
     decrementItem,
     setItemQuantity,
-    
+
     // Direct access to cart context
     ...cart,
   };
@@ -198,7 +241,7 @@ export const useCartActions = () => {
     clearCart: cart.clearCart,
     refreshCart: cart.refreshCart,
     clearError: cart.clearError,
-    
+
     // Convenient methods
     incrementItem,
     decrementItem,
@@ -206,4 +249,4 @@ export const useCartActions = () => {
   };
 };
 
-export default useCart; 
+export default useCart;
