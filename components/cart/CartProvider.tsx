@@ -14,6 +14,7 @@ interface CartContextType {
   lines: CartLine[];
   appliedDiscountCodes: string[];
   discountSavings: string;
+  checkoutUrl: string | null;
   
   // Actions
   addToCart: (merchandiseId: string, quantity: number, attributes?: { key: string; value: string }[]) => Promise<void>;
@@ -50,6 +51,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const currencyCode = cartStore.cart?.cost?.totalAmount?.currencyCode || 'USD';
   const appliedDiscountCodes = cartStore.appliedDiscountCodes;
   const discountSavings = cartStore.discountSavings;
+  const checkoutUrl = cartStore.cart?.checkoutUrl || null;
 
   const contextValue: CartContextType = {
     cart: cartStore.cart,
@@ -63,6 +65,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     lines,
     appliedDiscountCodes,
     discountSavings,
+    checkoutUrl,
     
     // Actions
     addToCart: cartStore.addToCart,

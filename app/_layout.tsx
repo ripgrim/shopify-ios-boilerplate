@@ -18,6 +18,7 @@ import { Header } from '@/components/ui/Header';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/hooks/useCustomerAccount';
 import { NAV_THEME } from '@/lib/constants';
+import { ColorScheme, ShopifyCheckoutSheetProvider } from '@shopify/checkout-sheet-kit';
 import { useEffect, useRef, useState } from 'react';
 import WelcomeScreen from './auth/welcome';
 
@@ -37,6 +38,11 @@ const LIGHT_THEME: Theme = {
 const DARK_THEME: Theme = {
   ...DarkTheme,
   colors: NAV_THEME.dark,
+};
+
+const checkoutConfig = {
+  colorScheme: ColorScheme.automatic,
+  preloading: true,
 };
 
 // Auth Guard Component that handles authentication logic
@@ -82,24 +88,26 @@ function AuthGuard() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <CartProvider>
-          <CartDrawer>
-            <Header />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                gestureEnabled: true,
-                gestureDirection: 'horizontal',
-                fullScreenGestureEnabled: true,
-                animation: 'slide_from_right',
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
-          </CartDrawer>
-        </CartProvider>
+        <ShopifyCheckoutSheetProvider configuration={checkoutConfig}>
+          <CartProvider>
+            <CartDrawer>
+              <Header />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  gestureEnabled: true,
+                  gestureDirection: 'horizontal',
+                  fullScreenGestureEnabled: true,
+                  animation: 'slide_from_right',
+                }}
+              >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </CartDrawer>
+          </CartProvider>
+        </ShopifyCheckoutSheetProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

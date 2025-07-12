@@ -47,6 +47,7 @@ interface CartState {
   closeDrawer: () => void;
   toggleDrawer: () => void;
   clearError: () => void;
+  preloadCheckout: () => void;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -80,6 +81,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   get appliedDiscountCodes() {
     const state = get();
+    console.log('Debug - Cart discount codes:', state.cart?.discountCodes);
     return state.cart?.discountCodes?.filter(dc => dc.applicable).map(dc => dc.code) || [];
   },
 
@@ -502,5 +504,15 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
+  },
+
+  // Preload checkout when cart is updated
+  preloadCheckout: () => {
+    const state = get();
+    if (state.cart?.checkoutUrl) {
+      // Note: This requires the checkout sheet to be available in the component context
+      // We'll trigger preload from the component level instead
+      console.log('Cart ready for checkout preload:', state.cart.checkoutUrl);
+    }
   },
 })); 

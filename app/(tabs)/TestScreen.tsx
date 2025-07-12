@@ -1,5 +1,6 @@
 // import { useAuth } from '@/hooks/useCustomerAccount';
 // import { CUSTOMER_QUERY, customerAccountApi } from '@/services/customerAccountApi';
+import { StoreStatusDebug } from '@/components/StoreStatusDebug';
 import { Text } from '@/components/ui/text';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Notifications from 'expo-notifications';
@@ -405,6 +406,11 @@ export default function TestScreen() {
             🧹 Clear Console Logs
           </Text>
         </TouchableOpacity>
+
+        {/* Store Status Debug */}
+        <View className="mb-6">
+          <StoreStatusDebug />
+        </View>
 
         <Text className="text-lg font-semibold text-foreground mb-4">
           🚀 Easy Notifications Hook

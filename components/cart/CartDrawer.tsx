@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { getDrawerWidth } from '@/lib/dimensions';
+import { useShopifyCheckoutSheet } from '@shopify/checkout-sheet-kit';
 import { ShoppingCart, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
-import React from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,12 +31,64 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     isLoading,
     clearCart,
     discountSavings,
-    appliedDiscountCodes
+    appliedDiscountCodes,
+    checkoutUrl
   } = useCart();
 
   const iconColor = useThemeColor({}, 'text');
+  const textColor = useThemeColor({}, 'text');
   const backgroundColor = useThemeColor({}, 'background');
   const drawerWidth = getDrawerWidth();
+
+  const shopifyCheckout = useShopifyCheckoutSheet();
+
+  // Preload checkout when checkoutUrl is available
+  useEffect(() => {
+    if (checkoutUrl && lines.length > 0) {
+      console.log('Preloading checkout for faster experience...');
+      shopifyCheckout.preload(checkoutUrl);
+    }
+  }, [checkoutUrl, lines.length, shopifyCheckout]);
+
+  // Handle checkout lifecycle events
+  useEffect(() => {
+    const completedListener = shopifyCheckout.addEventListener('completed', (event) => {
+      console.log('Checkout completed:', event);
+      Alert.alert('Success', 'Order placed successfully!');
+      clearCart(); // Clear the cart after successful checkout
+    });
+
+    const errorListener = shopifyCheckout.addEventListener('error', (error) => {
+      console.error('Checkout error:', error);
+      Alert.alert('Checkout Error', error.message || 'Something went wrong during checkout');
+    });
+
+    const closeListener = shopifyCheckout.addEventListener('close', () => {
+      console.log('Checkout closed');
+      // Optional: refresh cart in case of any updates
+    });
+
+    return () => {
+      completedListener?.remove();
+      errorListener?.remove();
+      closeListener?.remove();
+    };
+  }, [shopifyCheckout, clearCart]);
+
+  const handleCheckout = async () => {
+    if (!checkoutUrl) {
+      Alert.alert('Error', 'Checkout URL not available');
+      return;
+    }
+
+    try {
+      console.log('Presenting checkout:', checkoutUrl);
+      shopifyCheckout.present(checkoutUrl);
+    } catch (error) {
+      console.error('Checkout error:', error);
+      Alert.alert('Error', 'Failed to open checkout. Please try again.');
+    }
+  };
 
   const panGesture = Gesture.Pan()
     .onEnd((event) => {
@@ -164,9 +217,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                     </View>
                     
                     <Button
-                      onPress={() => console.log('Navigate to checkout')}
+                      onPress={handleCheckout}
                       className="w-full h-14 rounded-2xl bg-primary mb-3"
-                      disabled={isLoading}
+                      disabled={isLoading || !checkoutUrl}
                     >
                       <Text className="text-primary-foreground font-semibold text-lg">
                         Checkout
