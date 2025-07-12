@@ -12,6 +12,8 @@ import 'react-native-reanimated';
 import '../global.css';
 
 import AuthProvider from '@/components/auth/AuthProvider';
+import { CartDrawer } from '@/components/cart/CartDrawer';
+import { CartProvider } from '@/components/cart/CartProvider';
 import { Header } from '@/components/ui/Header';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/hooks/useCustomerAccount';
@@ -78,24 +80,28 @@ function AuthGuard() {
 
   console.log('AuthGuard: User authenticated, showing main app');
   return (
-    <AuthProvider>
-      <Header />
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            gestureEnabled: true,
-            gestureDirection: 'horizontal',
-            fullScreenGestureEnabled: true,
-            animation: 'slide_from_right',
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </GestureHandlerRootView>
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <CartProvider>
+          <CartDrawer>
+            <Header />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                gestureDirection: 'horizontal',
+                fullScreenGestureEnabled: true,
+                animation: 'slide_from_right',
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </CartDrawer>
+        </CartProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }
 

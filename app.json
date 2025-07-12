@@ -60,7 +60,8 @@
         {
           "ios": {
             "useFrameworks": "static"
-          }
+          },
+          "newArchEnabled": true
         }
       ],
       "expo-font",

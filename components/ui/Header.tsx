@@ -1,4 +1,5 @@
 import { Text } from "@/components/ui/text";
+import { useCartDrawer, useCartStatus } from "@/hooks/useCart";
 import { useSanitySettings } from "@/hooks/useSanityData";
 import { useStore } from "@/hooks/useShopifyData";
 import { useLinkHandler } from "@/lib/linkHandler";
@@ -10,6 +11,8 @@ export const Header = () => {
     const { data: settings } = useSanitySettings();
     const { data: store } = useStore();
     const { handleLinkPress, getLinkTitle, getLinkKey } = useLinkHandler();
+    const { toggle: toggleCartDrawer } = useCartDrawer();
+    const { totalItems } = useCartStatus();
 
     const renderLink = (link: any) => {
         const title = getLinkTitle(link);
@@ -46,10 +49,19 @@ export const Header = () => {
                         {/* <Text className="text-secondary text-sm font-bold">{abbreviateStoreName(store?.name || 'S')}</Text> */}
                     </View>
                     <Text className="text-lg font-bold text-foreground">{store?.name || 'Shop'}</Text>
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/SettingsScreen')} className="ml-auto">
-                        <Text className="text-lg font-normal text-foreground/70">
+                    
+                    {/* Cart Icon with Badge */}
+                    <TouchableOpacity onPress={toggleCartDrawer} className="ml-auto relative">
+                        <View className="relative">
                             <ShoppingCart size={24} color={iconColor} />
-                        </Text>
+                            {totalItems > 0 && (
+                                <View className="absolute -top-2 -right-2 bg-primary rounded-full min-w-[20px] h-5 justify-center items-center">
+                                    <Text className="text-primary-foreground text-xs font-bold">
+                                        {totalItems > 99 ? '99+' : totalItems}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
                     </TouchableOpacity>
                 </TouchableOpacity>
 

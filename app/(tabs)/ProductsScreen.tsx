@@ -24,7 +24,7 @@ const ProductsScreen = () => {
     }
   };
 
-  console.log("products", JSON.stringify(products.slice(0, 2), null, 2));
+  // console.log("products", JSON.stringify(products.slice(0, 2), null, 2));
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>

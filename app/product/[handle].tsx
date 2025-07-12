@@ -4,24 +4,28 @@ import ProductPageSkeleton from '@/components/skeletons/productPageSkeleton';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
+import { useCartActions, useCartDrawer } from '@/hooks/useCart';
 import { useProduct } from '@/hooks/useShopifyData';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { optimizeShopifyImage } from '@/lib/utils';
 import { ShopifyProductVariant } from '@/types/shopify';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, ShoppingCart, Star } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProductPage() {
     const { handle } = useLocalSearchParams<{ handle: string }>();
     const router = useRouter();
     const { data: product, isLoading, error } = useProduct(handle || '');
+    const { addToCart } = useCartActions();
+    const { open: openCartDrawer } = useCartDrawer();
     const iconColor = useThemeColor({}, 'text');
     const backgroundColor = useThemeColor({}, 'background');
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(null);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
     
     // Image loading states
     const [mainImagesLoaded, setMainImagesLoaded] = useState<{ [key: string]: boolean }>({});
@@ -65,6 +69,33 @@ export default function ProductPage() {
                     setSelectedImageIndex(imageIndex);
                 }
             }
+        }
+    };
+
+    const handleAddToCart = async () => {
+        if (!currentVariant || !currentAvailability) {
+            return;
+        }
+
+        try {
+            setIsAddingToCart(true);
+            await addToCart(currentVariant.id, 1);
+            openCartDrawer();
+            
+            // // Show success message and open cart drawer
+            // Alert.alert(
+            //     'Added to Cart',
+            //     `${product.title} has been added to your cart.`,
+            //     [
+            //         { text: 'Continue Shopping', style: 'cancel' },
+            //         { text: 'View Cart', onPress: openCartDrawer }
+            //     ]
+            // );
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+            Alert.alert('Error', 'Failed to add item to cart. Please try again.');
+        } finally {
+            setIsAddingToCart(false);
         }
     };
 
@@ -229,14 +260,26 @@ export default function ProductPage() {
             {/* Add to Cart Button */}
             <View className="px-6 py-4 bg-background border-t border-border">
                 <Button
-                    disabled={!currentAvailability}
+                    onPress={handleAddToCart}
+                    disabled={!currentAvailability || isAddingToCart}
                     className="flex-row items-center justify-center py-6 px-4 rounded-xl gap-2"
                     variant={currentAvailability ? "default" : "secondary"}
                 >
-                    <ShoppingCart size={15} color={backgroundColor} className="mr-3" />
-                    <Text className="text-background font-bold text-lg">
-                        {currentAvailability ? 'Add to Cart' : 'Out of Stock'}
-                    </Text>
+                    {isAddingToCart ? (
+                        <>
+                            <ActivityIndicator size="small" color={backgroundColor} className="mr-3" />
+                            <Text className="text-background font-bold text-lg">
+                                Adding to Cart...
+                            </Text>
+                        </>
+                    ) : (
+                        <>
+                            <ShoppingCart size={15} color={backgroundColor} className="mr-3" />
+                            <Text className="text-background font-bold text-lg">
+                                {currentAvailability ? 'Add to Cart' : 'Out of Stock'}
+                            </Text>
+                        </>
+                    )}
                 </Button>
             </View>
         </SafeAreaView>
