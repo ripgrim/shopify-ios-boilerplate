@@ -10,7 +10,6 @@
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
-      "bundler": "metro",
       "appleTeamId": "VN9SHTNZRC",
       "entitlements": {
         "com.apple.security.application-groups": [
@@ -55,7 +54,17 @@
         }
       ],
       "@bacons/apple-targets",
-      "expo-font"
+      ["react-native-bottom-tabs"],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      "expo-font",
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true
@@ -64,32 +73,7 @@
       "appEnv": "development",
       "router": {},
       "eas": {
-        "projectId": "a69e341e-6ccd-4853-81a3-e233b9f3d58f",
-        "build": {
-          "experimental": {
-            "ios": {
-              "appExtensions": [
-                {
-                  "bundleIdentifier": "com.ripgrim.shopifyiosboilerplate.widget",
-                  "targetName": "widget",
-                  "entitlements": {
-                    "appGroups": [
-                      "group.com.ripgrim.shopifyiosboilerplate"
-                    ],
-                    "com.apple.security.application-groups": [
-                      "group.com.ripgrim.shopifyiosboilerplate"
-                    ]
-                  }
-                },
-                {
-                  "bundleIdentifier": "com.ripgrim.shopifyiosboilerplate.action",
-                  "targetName": "action",
-                  "entitlements": {}
-                }
-              ]
-            }
-          }
-        }
+        "projectId": "a69e341e-6ccd-4853-81a3-e233b9f3d58f"
       }
     },
     "android": {

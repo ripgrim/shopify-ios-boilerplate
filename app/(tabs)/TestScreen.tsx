@@ -390,7 +390,7 @@ export default function TestScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-background">
       <View className="px-6 py-6 pb-2">
         <Text className="text-2xl font-bold text-foreground mb-6">
           Expo Modules Test
