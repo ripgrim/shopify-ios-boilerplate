@@ -380,26 +380,32 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   applyDiscountCode: async (code: string) => {
+  applyDiscountCode: async (code: string) => {
     const currentState = get();
-    const trimmedCode = code.trim().toUpperCase();
-    
+    const trimmedCode = code.trim();
+
     if (!trimmedCode) {
       throw new Error('Please enter a discount code');
     }
-    
+
+    // Validate discount code format (basic validation)
+    if (trimmedCode.length < 2 || trimmedCode.length > 50) {
+      throw new Error('Invalid discount code format');
+    }
+
     if (!currentState.cart) {
       throw new Error('No cart available');
     }
-    
+
     // Check if code is already applied
-    const existingCodes = currentState.cart.discountCodes?.map(dc => dc.code.toUpperCase()) || [];
-    if (existingCodes.includes(trimmedCode)) {
+    const existingCodes = currentState.cart.discountCodes?.map(dc => dc.code) || [];
+    if (existingCodes.some(existing => existing.toLowerCase() === trimmedCode.toLowerCase())) {
       throw new Error('This discount code is already applied');
     }
-    
+
     // Add the new code to existing codes
     const newDiscountCodes = [...existingCodes, trimmedCode];
-    
+
     try {
       await get().updateDiscountCodes(newDiscountCodes);
     } catch (error) {
