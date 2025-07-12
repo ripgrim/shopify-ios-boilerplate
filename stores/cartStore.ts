@@ -1,3 +1,4 @@
+import { NetworkError } from '@/hooks/useNetworkStatus';
 import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import cartApiService from '../services/cartApi';
@@ -48,6 +49,7 @@ interface CartState {
   toggleDrawer: () => void;
   clearError: () => void;
   preloadCheckout: () => void;
+  handleError: (error: unknown, defaultMessage: string) => string;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -94,6 +96,24 @@ export const useCartStore = create<CartState>((set, get) => ({
     }, 0);
     
     return totalSavings.toFixed(2);
+  },
+
+  // Helper method to handle errors consistently
+  handleError: (error: unknown, defaultMessage: string) => {
+    let errorMessage = defaultMessage;
+    
+    if (error instanceof NetworkError) {
+      errorMessage = 'No internet connection. Please check your network and try again.';
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
+    set({ 
+      error: errorMessage,
+      isLoading: false 
+    });
+    
+    return errorMessage;
   },
 
   // Actions
@@ -173,11 +193,8 @@ export const useCartStore = create<CartState>((set, get) => ({
       set({ cart: updatedCart, isLoading: false });
     } catch (error) {
       console.error('Add to cart error:', error);
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to add to cart',
-        isLoading: false 
-      });
-      throw error;
+      const errorMessage = get().handleError(error, 'Failed to add item to cart');
+      throw new Error(errorMessage);
     }
   },
 
