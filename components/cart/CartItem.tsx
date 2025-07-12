@@ -1,12 +1,13 @@
 
-import { OptimizedImage } from '@/components/helpers/OptimizedImage';
+import { useCart } from '@/components/cart/CartProvider';
+import { Text } from '@/components/ui/text';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { optimizeShopifyImage } from '@/lib/utils';
+import { CartLine } from '@/types/cart';
 import { Minus, Plus, Trash2 } from 'lucide-react-native';
-import React, { useState } from 'react';
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
-import { useThemeColor } from '../../hooks/useThemeColor';
-import { CartLine } from '../../types/cart';
-import { Text } from '../ui/text';
-import { useCart } from './CartProvider';
+import React, { useRef, useState } from 'react';
+import { Animated, Image, TouchableOpacity, View } from 'react-native';
+import { PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 
 interface CartItemProps {
   item: CartLine;
@@ -20,35 +21,65 @@ export const CartItem: React.FC<CartItemProps> = ({
   onRemove 
 }) => {
   const { updateCartLine, removeFromCart } = useCart();
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
   
   const iconColor = useThemeColor({}, 'text');
-  const backgroundColor = useThemeColor({}, 'background');
+  const mutedColor = useThemeColor({}, 'tabIconDefault');
+  
+  const translateX = useRef(new Animated.Value(0)).current;
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const handleQuantityChange = async (newQuantity: number) => {
     if (newQuantity < 1) return;
     
     try {
-      setIsUpdating(true);
       await updateCartLine(item.id, newQuantity);
       onQuantityChange?.(item.id, newQuantity);
     } catch (error) {
       console.error('Failed to update cart item:', error);
-    } finally {
-      setIsUpdating(false);
     }
   };
 
   const handleRemove = async () => {
-    try {
-      setIsRemoving(true);
-      await removeFromCart(item.id);
-      onRemove?.(item.id);
-    } catch (error) {
-      console.error('Failed to remove cart item:', error);
-    } finally {
-      setIsRemoving(false);
+    if (isRemoving) return;
+    
+    setIsRemoving(true);
+    
+    Animated.timing(translateX, {
+      toValue: -400,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(async () => {
+      try {
+        await removeFromCart(item.id);
+        onRemove?.(item.id);
+      } catch (error) {
+        console.error('Failed to remove cart item:', error);
+        setIsRemoving(false);
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+  };
+
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
+    if (event.nativeEvent.state === 5) {
+      const { translationX } = event.nativeEvent;
+      
+      if (translationX < -100) {
+        handleRemove();
+      } else {
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
     }
   };
 
@@ -56,121 +87,103 @@ export const CartItem: React.FC<CartItemProps> = ({
     return `${currencyCode} ${parseFloat(amount).toFixed(2)}`;
   };
 
-  const unitPrice = formatPrice(item.cost.amountPerQuantity.amount, item.cost.amountPerQuantity.currencyCode);
   const totalPrice = formatPrice(item.cost.totalAmount.amount, item.cost.totalAmount.currencyCode);
 
+  // Get the main variant option (usually size)
+  const mainOption = item.merchandise.selectedOptions?.find(opt => 
+    opt.name.toLowerCase() === 'size' || opt.name.toLowerCase() === 'variant'
+  ) || item.merchandise.selectedOptions?.[0];
+
   return (
-    <View className="bg-card rounded-lg p-4 border border-border">
-      <View className="flex-row">
-        {/* Product Image */}
-        {item.merchandise.image && (
-          <View className="w-20 h-20 rounded-lg overflow-hidden mr-4">
-            <OptimizedImage url={item.merchandise.image.url} width={100} height={100} />
-          </View>
-        )}
-        
-        {/* Product Info */}
-        <View className="flex-1">
-          <Text className="font-semibold text-card-foreground text-base" numberOfLines={2}>
-            {item.merchandise.product.title}
-          </Text>
-          
-          {item.merchandise.title !== item.merchandise.product.title && (
-            <Text className="text-muted-foreground text-sm mt-1" numberOfLines={1}>
-              {item.merchandise.title}
-            </Text>
-          )}
-          
-          {/* Selected Options */}
-          {item.merchandise.selectedOptions && item.merchandise.selectedOptions.length > 0 && (
-            <View className="mt-2">
-              {item.merchandise.selectedOptions.map((option, index) => (
-                <Text key={index} className="text-muted-foreground text-xs">
-                  {option.name}: {option.value}
-                </Text>
-              ))}
-            </View>
-          )}
-          
-          {/* Pricing */}
-          <View className="mt-2">
-            <Text className="text-muted-foreground text-sm">
-              {unitPrice} each
-            </Text>
-            <Text className="font-bold text-card-foreground text-lg">
-              {totalPrice}
-            </Text>
-          </View>
-        </View>
+    <View className="relative overflow-hidden">
+      <View className="absolute right-0 top-0 bottom-0 w-20 bg-red-500 justify-center items-center">
+        <Trash2 size={20} color="white" />
       </View>
       
-      {/* Quantity Controls & Remove Button */}
-      <View className="flex-row items-center justify-between mt-4">
-        <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={() => handleQuantityChange(item.quantity - 1)}
-            disabled={isUpdating || item.quantity <= 1}
-            className="w-10 h-10 rounded-full border border-border justify-center items-center"
-            style={{ opacity: isUpdating || item.quantity <= 1 ? 0.5 : 1 }}
-          >
-            <Minus size={16} color={iconColor} />
-          </TouchableOpacity>
-          
-          <View className="mx-4 min-w-[50px] items-center">
-            {isUpdating ? (
-              <ActivityIndicator size="small" color={iconColor} />
-            ) : (
-              <Text className="text-card-foreground font-semibold text-lg">
-                {item.quantity}
-              </Text>
-            )}
-          </View>
-          
-          <TouchableOpacity
-            onPress={() => handleQuantityChange(item.quantity + 1)}
-            disabled={isUpdating || !item.merchandise.availableForSale}
-            className="w-10 h-10 rounded-full border border-border justify-center items-center"
-            style={{ opacity: isUpdating || !item.merchandise.availableForSale ? 0.5 : 1 }}
-          >
-            <Plus size={16} color={iconColor} />
-          </TouchableOpacity>
-        </View>
-        
-        {/* Remove Button */}
-        <TouchableOpacity
-          onPress={handleRemove}
-          disabled={isRemoving}
-          className="w-10 h-10 rounded-full justify-center items-center"
-          style={{ opacity: isRemoving ? 0.5 : 1 }}
+      <PanGestureHandler
+        onGestureEvent={onGestureEvent}
+        onHandlerStateChange={onHandlerStateChange}
+        activeOffsetX={[-10, 10]}
+        failOffsetY={[-20, 20]}
+        enabled={!isRemoving}
+      >
+        <Animated.View
+          style={{
+            transform: [{ translateX }],
+          }}
+          className="bg-background px-4 py-4"
         >
-          {isRemoving ? (
-            <ActivityIndicator size="small" color={iconColor} />
-          ) : (
-            <Trash2 size={20} color="#ef4444" />
-          )}
-        </TouchableOpacity>
-      </View>
-      
-      {/* Stock Status */}
-      {!item.merchandise.availableForSale && (
-        <View className="mt-2 p-2 bg-red-50 rounded-md">
-          <Text className="text-red-600 text-sm text-center">
-            Out of Stock
-          </Text>
-        </View>
-      )}
-      
-      {/* Low Stock Warning */}
-      {item.merchandise.availableForSale && 
-       item.merchandise.quantityAvailable && 
-       item.merchandise.quantityAvailable < 5 && 
-       item.merchandise.quantityAvailable > 0 && (
-        <View className="mt-2 p-2 bg-yellow-50 rounded-md">
-          <Text className="text-yellow-600 text-sm text-center">
-            Only {item.merchandise.quantityAvailable} left in stock
-          </Text>
-        </View>
-      )}
+          <View className="flex-row items-start">
+            {/* Product Image */}
+            {item.merchandise.image && (
+              <View className="w-24 h-24 rounded-lg overflow-hidden mr-4">
+                <Image 
+                  source={{ uri: optimizeShopifyImage(item.merchandise.image.url, 100, 100) }}
+                  style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+                />
+              </View>
+            )}
+            
+            {/* Product Info */}
+            <View className="flex-1 mr-4">
+              <Text className="font-medium text-card-foreground text-base leading-tight" numberOfLines={2}>
+                {item.merchandise.product.title}
+              </Text>
+              
+              {item.merchandise.title !== item.merchandise.product.title && (
+                <Text className="text-muted-foreground text-sm mt-1" numberOfLines={1}>
+                  {item.merchandise.title}
+                </Text>
+              )}
+            </View>
+            
+            {/* Price */}
+            <View className="items-end">
+              <Text className="font-semibold text-card-foreground text-base">
+                {totalPrice}
+              </Text>
+            </View>
+          </View>
+          
+          {/* Controls Row */}
+          <View className="flex-row items-center justify-between mt-4">
+            {/* Quantity Selector */}
+            <View className="flex-row items-center">
+              <TouchableOpacity
+                onPress={() => handleQuantityChange(item.quantity - 1)}
+                disabled={item.quantity <= 1}
+                className="w-8 h-8 rounded justify-center items-center"
+                style={{ opacity: item.quantity <= 1 ? 0.3 : 1 }}
+              >
+                <Minus size={16} color={mutedColor} />
+              </TouchableOpacity>
+              
+              <View className="mx-4 py-1 rounded-md min-w-[40px] items-center">
+                <Text className="text-card-foreground font-medium text-sm">
+                  {item.quantity}
+                </Text>
+              </View>
+              
+              <TouchableOpacity
+                onPress={() => handleQuantityChange(item.quantity + 1)}
+                disabled={!item.merchandise.availableForSale}
+                className="w-8 h-8 rounded justify-center items-center"
+                style={{ opacity: !item.merchandise.availableForSale ? 0.3 : 1 }}
+              >
+                <Plus size={16} color={mutedColor} />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Delete Button */}
+            <TouchableOpacity
+              onPress={handleRemove}
+              className="w-8 h-8 rounded justify-center items-center ml-4"
+            >
+              <Trash2 size={16} color={mutedColor} />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </PanGestureHandler>
     </View>
   );
 };

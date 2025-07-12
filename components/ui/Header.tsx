@@ -39,17 +39,21 @@ export const Header = () => {
         <SafeAreaView className="bg-background border-b border-border">
             <View className="px-4 py-4">
                 {/* Logo */}
-                <TouchableOpacity onPress={() => router.push('/')} className="flex-row items-center gap-2 mb-3">
-                    <View className="w-8 h-8 bg-primary rounded-lg justify-center items-center">
-                        {useColorScheme() === 'dark' ? (
-                            <Image source={require('@/assets/images/epoc.png')} className="w-8 h-8" resizeMode="contain" />
-                        ) : (
-                            <Image source={require('@/assets/images/epoc-light.png')} className="w-8 h-8" resizeMode="contain" />
-                        )}
-                        {/* <Text className="text-secondary text-sm font-bold">{abbreviateStoreName(store?.name || 'S')}</Text> */}
-                    </View>
-                    <Text className="text-lg font-bold text-foreground">{store?.name || 'Shop'}</Text>
-                    
+                <View className="flex-row items-center gap-2 mb-3">
+                    <TouchableOpacity onPress={() => router.push('/')} className="flex-row items-center gap-2 mb-3">
+                        <View className="w-8 h-8 bg-primary rounded-lg justify-center items-center">
+                            {useColorScheme() === 'dark' ? (
+                                <Image source={require('@/assets/images/epoc.png')} className="w-8 h-8" resizeMode="contain" />
+                            ) : (
+                                <Image source={require('@/assets/images/epoc-light.png')} className="w-8 h-8" resizeMode="contain" />
+                            )}
+                            {/* <Text className="text-secondary text-sm font-bold">{abbreviateStoreName(store?.name || 'S')}</Text> */}
+                        </View>
+
+
+                        <Text className="text-lg font-bold text-foreground">{store?.name || 'Shop'}</Text>
+                    </TouchableOpacity>
+
                     {/* Cart Icon with Badge */}
                     <TouchableOpacity onPress={toggleCartDrawer} className="ml-auto relative">
                         <View className="relative">
@@ -63,7 +67,7 @@ export const Header = () => {
                             )}
                         </View>
                     </TouchableOpacity>
-                </TouchableOpacity>
+                </View>
 
                 {/* Header Links - Subnavigation */}
                 {settings?.menu?.links && settings.menu.links.length > 0 && (

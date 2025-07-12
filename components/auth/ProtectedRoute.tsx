@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuthStore } from '../../stores/authStore';
 import LoginScreen from './LoginScreen';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 export default function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {

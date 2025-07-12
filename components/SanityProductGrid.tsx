@@ -1,22 +1,20 @@
 import { SanityProductCard } from '@/components/SanityProductCard';
 import { SanityProduct } from '@/types/sanity';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { FC } from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 
 interface SanityProductGridProps {
   products: SanityProduct[];
   onProductPress?: (product: SanityProduct) => void;
   onEndReached?: () => void;
-  loading?: boolean;
   style?: any;
 }
 
-const SanityProductGrid: React.FC<SanityProductGridProps> = ({
+const SanityProductGrid: FC<SanityProductGridProps> = ({
   products,
   onProductPress,
   onEndReached,
-  loading,
   style,
 }) => {
   const router = useRouter();

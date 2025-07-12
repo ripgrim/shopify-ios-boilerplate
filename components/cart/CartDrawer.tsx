@@ -1,15 +1,19 @@
+import { AppliedDiscountsList } from '@/components/cart/AppliedDiscountsList';
+import CartItem from '@/components/cart/CartItem';
+import { useCart } from '@/components/cart/CartProvider';
+import { DiscountCodeInput } from '@/components/cart/DiscountCodeInput';
+import { DiscountSavings } from '@/components/cart/DiscountSavings';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { getDrawerWidth } from '@/lib/dimensions';
 import { ShoppingCart, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import React from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useThemeColor } from '../../hooks/useThemeColor';
-import { OptimizedImage } from '../helpers/OptimizedImage';
-import { Button } from '../ui/button';
-import { Text } from '../ui/text';
-import { useCart } from './CartProvider';
 
 interface CartDrawerProps {
   children?: React.ReactNode;
@@ -23,7 +27,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
     totalQuantity, 
     totalAmount, 
     currencyCode,
-    isLoading 
+    isLoading,
+    clearCart,
+    discountSavings,
+    appliedDiscountCodes
   } = useCart();
 
   const iconColor = useThemeColor({}, 'text');
@@ -32,9 +39,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
 
   const panGesture = Gesture.Pan()
     .onEnd((event) => {
-      // Close on sufficient swipe distance or velocity
       if (event.translationX > 50 || event.velocityX > 500) {
-        closeDrawer();
+        runOnJS(closeDrawer)();
       }
     });
 
@@ -49,7 +55,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
       {/* Overlay */}
       <MotiView
         from={{ opacity: 0 }}
-        animate={{ opacity: 0.5 }}
+        animate={{ opacity: 0.4 }}
         exit={{ opacity: 0 }}
         transition={{ type: 'timing', duration: 200 }}
         style={{
@@ -75,60 +81,116 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
           from={{ translateX: drawerWidth }}
           animate={{ translateX: 0 }}
           exit={{ translateX: drawerWidth }}
-          transition={{ type: 'timing', duration: 250 }}
+          transition={{ type: 'timing', duration: 300 }}
+          className="bg-background"
           style={{
             position: 'absolute',
             top: 0,
             right: 0,
             bottom: 0,
             width: drawerWidth,
-            backgroundColor: backgroundColor,
             zIndex: 1001,
-            elevation: 16,
-            shadowColor: '#000',
-            shadowOffset: { width: -2, height: 0 },
-            shadowOpacity: 0.25,
-            shadowRadius: 8,
           }}
         >
           <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-            {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-4 border-b border-border">
-              <View className="flex-row items-center">
-                <ShoppingCart size={24} color={iconColor} />
-                <Text className="text-xl font-bold text-foreground ml-3">
-                  Cart ({totalQuantity})
-                </Text>
+            {/* Clean Header */}
+            <View className="px-6 py-5">
+              <View className="flex-row items-center justify-between">
+                <View>
+                  <Text className="text-2xl font-bold text-foreground">
+                    Cart
+                  </Text>
+                  <Text className="text-sm text-muted-foreground mt-1">
+                    {totalQuantity} {totalQuantity === 1 ? 'item' : 'items'}
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={closeDrawer} 
+                  className="w-10 h-10 rounded-full bg-muted/50 justify-center items-center"
+                >
+                  <X size={20} color={iconColor} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={closeDrawer} className="p-2">
-                <X size={24} color={iconColor} />
-              </TouchableOpacity>
             </View>
 
             {/* Cart Content */}
-            <ScrollView 
-              className="flex-1 px-4" 
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingVertical: 16 }}
-            >
-              {isLoading ? (
-                <View className="flex-1 justify-center items-center py-8">
-                  <Text className="text-muted-foreground">Loading cart...</Text>
-                </View>
-              ) : lines.length === 0 ? (
-                <EmptyCartView iconColor={iconColor} />
-              ) : (
-                <CartItemsList lines={lines} />
-              )}
-            </ScrollView>
+            {isLoading ? (
+              <View className="flex-1 justify-center items-center">
+                <Text className="text-muted-foreground">Loading...</Text>
+              </View>
+            ) : lines.length === 0 ? (
+              <EmptyCart onClose={closeDrawer} />
+            ) : (
+              <>
+                {/* Items */}
+                <ScrollView 
+                  className="flex-1" 
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ padding: 24, paddingTop: 0 }}
+                >
+                  <View className="space-y-4">
+                    {lines.map((line) => (
+                      <CartItem key={line.id} item={line} />
+                    ))}
+                  </View>
 
-            {/* Footer */}
-            {lines.length > 0 && (
-              <CartFooter 
-                totalAmount={totalAmount} 
-                currencyCode={currencyCode}
-                isLoading={isLoading}
-              />
+                  {/* Discount Code Input - Always Visible */}
+                  <View className="mt-6 space-y-4">
+                    <DiscountCodeInput />
+                    
+                    {/* Applied Discount Codes */}
+                    {appliedDiscountCodes.length > 0 && (
+                      <AppliedDiscountsList />
+                    )}
+                  </View>
+                </ScrollView>
+
+                {/* Clean Footer */}
+                <View className="border-t border-border/50 bg-background/95 backdrop-blur-sm">
+                  <View className="px-6 py-6">
+                    <View className="space-y-2 mb-6">
+                      {/* Discount Savings */}
+                      <DiscountSavings />
+                      
+                      {/* Total */}
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-lg text-muted-foreground">
+                          Total
+                        </Text>
+                        <Text className="text-2xl font-bold text-foreground">
+                          {currencyCode} {totalAmount}
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <Button
+                      onPress={() => console.log('Navigate to checkout')}
+                      className="w-full h-14 rounded-2xl bg-primary mb-3"
+                      disabled={isLoading}
+                    >
+                      <Text className="text-primary-foreground font-semibold text-lg">
+                        Checkout
+                      </Text>
+                    </Button>
+                    
+                    <Button
+                      onPress={async () => {
+                        try {
+                          await clearCart();
+                        } catch (error) {
+                          console.error('Failed to clear cart:', error);
+                        }
+                      }}
+                      className="w-full h-12 rounded-2xl bg-muted/50"
+                      disabled={isLoading}
+                    >
+                      <Text className="text-muted-foreground font-medium">
+                        Clear Cart
+                      </Text>
+                    </Button>
+                  </View>
+                </View>
+              </>
             )}
           </SafeAreaView>
         </MotiView>
@@ -137,74 +199,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   );
 };
 
-const EmptyCartView: React.FC<{ iconColor: string }> = ({ iconColor }) => (
-  <View className="flex-1 justify-center items-center py-8">
-    <ShoppingCart size={48} color={iconColor} style={{ opacity: 0.3 }} />
-    <Text className="text-muted-foreground text-center mt-4">
-      Your cart is empty
-    </Text>
-    <Text className="text-muted-foreground text-center text-sm mt-2">
-      Add some items to get started
-    </Text>
-  </View>
-);
-
-const CartItemsList: React.FC<{ lines: any[] }> = ({ lines }) => (
-  <View className="space-y-4">
-    {lines.map((line) => (
-      <View key={line.id} className="bg-card rounded-lg p-4 border border-border">
-        <View className="flex-row">
-          {line.merchandise.image && (
-            <View className="w-16 h-16 rounded-lg overflow-hidden mr-3">
-              <OptimizedImage url={line.merchandise.image.url} width={64} height={64} />
-            </View>
-          )}
-          <View className="flex-1">
-            <Text className="font-semibold text-card-foreground" numberOfLines={2}>
-              {line.merchandise.product.title}
-            </Text>
-            <Text className="text-muted-foreground text-sm" numberOfLines={1}>
-              {line.merchandise.title}
-            </Text>
-            <View className="flex-row items-center justify-between mt-2">
-              <Text className="text-card-foreground">
-                Qty: {line.quantity}
-              </Text>
-              <Text className="font-semibold text-card-foreground">
-                {line.cost.totalAmount.currencyCode} {line.cost.totalAmount.amount}
-              </Text>
-            </View>
-          </View>
-        </View>
+const EmptyCart: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const iconColor = useThemeColor({}, 'text');
+  
+  return (
+    <View className="flex-1 justify-center items-center px-8">
+      <View className="w-24 h-24 rounded-full bg-muted/30 justify-center items-center mb-6">
+        <ShoppingCart size={32} color={iconColor} style={{ opacity: 0.5 }} />
       </View>
-    ))}
-  </View>
-);
-
-const CartFooter: React.FC<{ 
-  totalAmount: string; 
-  currencyCode: string; 
-  isLoading: boolean;
-}> = ({ totalAmount, currencyCode, isLoading }) => (
-  <View className="border-t border-border px-4 py-4">
-    <View className="flex-row items-center justify-between mb-4">
-      <Text className="text-lg font-semibold text-foreground">
-        Total
+      
+      <Text className="text-xl font-semibold text-foreground mb-2 text-center">
+        Your cart is empty
       </Text>
-      <Text className="text-xl font-bold text-foreground">
-        {currencyCode} {totalAmount}
+      
+      <Text className="text-muted-foreground text-center mb-8 leading-relaxed">
+        Looks like you haven't added anything to your cart yet
       </Text>
+      
+      <Button
+        onPress={onClose}
+        className="px-8 py-3 rounded-xl bg-primary"
+      >
+        <Text className="text-primary-foreground font-medium">
+          Continue Shopping
+        </Text>
+      </Button>
     </View>
-    <Button
-      onPress={() => console.log('Navigate to checkout')}
-      className="w-full py-4 rounded-xl"
-      disabled={isLoading}
-    >
-      <Text className="text-primary-foreground font-bold text-lg">
-        Checkout
-      </Text>
-    </Button>
-  </View>
-);
+  );
+};
 
 export default CartDrawer; 

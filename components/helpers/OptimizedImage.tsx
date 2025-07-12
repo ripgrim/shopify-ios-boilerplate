@@ -24,6 +24,7 @@ export function OptimizedImage({
     <Image
       source={{ uri: optimizeShopifyImage(url, width, height) }}
       style={{ width, height }}
+      resizeMode="contain"
       accessibilityLabel={alt}
       onError={onError}
     />

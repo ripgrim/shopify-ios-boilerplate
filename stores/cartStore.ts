@@ -2,11 +2,11 @@ import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import cartApiService from '../services/cartApi';
 import {
-    CartAttributesUpdateInput,
-    CartBuyerIdentityUpdateInput,
-    CartCreateInput,
-    CartLine,
-    ShopifyCart
+  CartAttributesUpdateInput,
+  CartBuyerIdentityUpdateInput,
+  CartCreateInput,
+  CartLine,
+  ShopifyCart
 } from '../types/cart';
 
 const storage = new MMKV();
@@ -25,6 +25,8 @@ interface CartState {
   totalAmount: string;
   currencyCode: string;
   lines: CartLine[];
+  appliedDiscountCodes: string[];
+  discountSavings: string;
   
   // Actions
   initializeCart: () => Promise<void>;
@@ -35,6 +37,9 @@ interface CartState {
   updateBuyerIdentity: (buyerIdentity: CartBuyerIdentityUpdateInput['buyerIdentity']) => Promise<void>;
   updateCartAttributes: (attributes: CartAttributesUpdateInput['attributes']) => Promise<void>;
   updateDiscountCodes: (discountCodes: string[]) => Promise<void>;
+  applyDiscountCode: (code: string) => Promise<void>;
+  removeDiscountCode: (code: string) => Promise<void>;
+  clearDiscountCodes: () => Promise<void>;
   updateCartNote: (note: string) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
@@ -71,6 +76,22 @@ export const useCartStore = create<CartState>((set, get) => ({
   get lines() {
     const state = get();
     return state.cart?.lines?.edges?.map(edge => edge.node) || [];
+  },
+
+  get appliedDiscountCodes() {
+    const state = get();
+    return state.cart?.discountCodes?.filter(dc => dc.applicable).map(dc => dc.code) || [];
+  },
+
+  get discountSavings() {
+    const state = get();
+    if (!state.cart?.discountAllocations?.length) return '0.00';
+    
+    const totalSavings = state.cart.discountAllocations.reduce((sum, allocation) => {
+      return sum + parseFloat(allocation.discountedAmount.amount);
+    }, 0);
+    
+    return totalSavings.toFixed(2);
   },
 
   // Actions
@@ -159,15 +180,46 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   updateCartLine: async (lineId: string, quantity: number) => {
-    try {
-      set({ isLoading: true, error: null });
-      
-      const currentState = get();
-      if (!currentState.cart) {
-        throw new Error('No cart available');
+    const currentState = get();
+    if (!currentState.cart) {
+      throw new Error('No cart available');
+    }
+
+    // Optimistic update - update UI immediately
+    const optimisticCart = {
+      ...currentState.cart,
+      lines: {
+        ...currentState.cart.lines,
+        edges: currentState.cart.lines.edges.map(edge => 
+          edge.node.id === lineId 
+            ? {
+                ...edge,
+                node: {
+                  ...edge.node,
+                  quantity,
+                  cost: {
+                    ...edge.node.cost,
+                    totalAmount: {
+                      ...edge.node.cost.totalAmount,
+                      amount: (parseFloat(edge.node.cost.amountPerQuantity.amount) * quantity).toString()
+                    }
+                  }
+                }
+              }
+            : edge
+        )
       }
-      
-      // Use the cart API service to update cart line
+    };
+
+    // Calculate new total quantity
+    const newTotalQuantity = optimisticCart.lines.edges.reduce((sum, edge) => sum + edge.node.quantity, 0);
+    optimisticCart.totalQuantity = newTotalQuantity;
+
+    // Update state optimistically
+    set({ cart: optimisticCart, error: null });
+
+    try {
+      // Update server in background
       const updatedCart = await cartApiService.updateCartLines({
         cartId: currentState.cart.id,
         lines: [{
@@ -176,38 +228,55 @@ export const useCartStore = create<CartState>((set, get) => ({
         }]
       });
       
-      set({ cart: updatedCart, isLoading: false });
+      // Only update if the response is different (to avoid unnecessary re-renders)
+      set({ cart: updatedCart });
     } catch (error) {
       console.error('Update cart line error:', error);
+      // Revert optimistic update on error
       set({ 
-        error: error instanceof Error ? error.message : 'Failed to update cart line',
-        isLoading: false 
+        cart: currentState.cart,
+        error: error instanceof Error ? error.message : 'Failed to update cart line'
       });
       throw error;
     }
   },
 
   removeFromCart: async (lineId: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      
-      const currentState = get();
-      if (!currentState.cart) {
-        throw new Error('No cart available');
+    const currentState = get();
+    if (!currentState.cart) {
+      throw new Error('No cart available');
+    }
+
+    // Optimistic update - remove item immediately
+    const optimisticCart = {
+      ...currentState.cart,
+      lines: {
+        ...currentState.cart.lines,
+        edges: currentState.cart.lines.edges.filter(edge => edge.node.id !== lineId)
       }
-      
-      // Use the cart API service to remove cart line
+    };
+
+    // Calculate new total quantity
+    const newTotalQuantity = optimisticCart.lines.edges.reduce((sum, edge) => sum + edge.node.quantity, 0);
+    optimisticCart.totalQuantity = newTotalQuantity;
+
+    // Update state optimistically
+    set({ cart: optimisticCart, error: null });
+
+    try {
+      // Update server in background
       const updatedCart = await cartApiService.removeCartLines({
         cartId: currentState.cart.id,
         lineIds: [lineId]
       });
       
-      set({ cart: updatedCart, isLoading: false });
+      set({ cart: updatedCart });
     } catch (error) {
       console.error('Remove from cart error:', error);
+      // Revert optimistic update on error
       set({ 
-        error: error instanceof Error ? error.message : 'Failed to remove from cart',
-        isLoading: false 
+        cart: currentState.cart,
+        error: error instanceof Error ? error.message : 'Failed to remove from cart'
       });
       throw error;
     }
@@ -289,6 +358,56 @@ export const useCartStore = create<CartState>((set, get) => ({
       });
       throw error;
     }
+  },
+
+  applyDiscountCode: async (code: string) => {
+    const currentState = get();
+    const trimmedCode = code.trim().toUpperCase();
+    
+    if (!trimmedCode) {
+      throw new Error('Please enter a discount code');
+    }
+    
+    if (!currentState.cart) {
+      throw new Error('No cart available');
+    }
+    
+    // Check if code is already applied
+    const existingCodes = currentState.cart.discountCodes?.map(dc => dc.code.toUpperCase()) || [];
+    if (existingCodes.includes(trimmedCode)) {
+      throw new Error('This discount code is already applied');
+    }
+    
+    // Add the new code to existing codes
+    const newDiscountCodes = [...existingCodes, trimmedCode];
+    
+    try {
+      await get().updateDiscountCodes(newDiscountCodes);
+    } catch (error) {
+      // Check if it's a user error about invalid code
+      if (error instanceof Error && error.message.includes('discount')) {
+        throw new Error('Invalid discount code');
+      }
+      throw error;
+    }
+  },
+
+  removeDiscountCode: async (code: string) => {
+    const currentState = get();
+    if (!currentState.cart) {
+      throw new Error('No cart available');
+    }
+    
+    const existingCodes = currentState.cart.discountCodes?.map(dc => dc.code) || [];
+    const filteredCodes = existingCodes.filter(existingCode => 
+      existingCode.toUpperCase() !== code.toUpperCase()
+    );
+    
+    await get().updateDiscountCodes(filteredCodes);
+  },
+
+  clearDiscountCodes: async () => {
+    await get().updateDiscountCodes([]);
   },
 
   updateCartNote: async (note) => {

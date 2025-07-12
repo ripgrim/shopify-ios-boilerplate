@@ -23,7 +23,7 @@ class CartApiService {
   private client: GraphQLClient;
 
   constructor() {
-    this.client = new GraphQLClient(`https://${config.shopify.storeDomain}/api/2024-01/graphql.json`, {
+    this.client = new GraphQLClient(`https://${config.shopify.storeDomain}/api/2025-07/graphql.json`, {
       headers: {
         'X-Shopify-Storefront-Access-Token': config.shopify.storefrontAccessToken,
         'Content-Type': 'application/json',

@@ -12,6 +12,8 @@ interface CartContextType {
   totalAmount: string;
   currencyCode: string;
   lines: CartLine[];
+  appliedDiscountCodes: string[];
+  discountSavings: string;
   
   // Actions
   addToCart: (merchandiseId: string, quantity: number, attributes?: { key: string; value: string }[]) => Promise<void>;
@@ -41,13 +43,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   }, [cartStore.isInitialized]);
 
-
-
   // Calculate derived values from cart state
   const lines = cartStore.cart?.lines?.edges?.map(edge => edge.node) || [];
   const totalQuantity = cartStore.cart?.totalQuantity || 0;
   const totalAmount = cartStore.cart?.cost?.totalAmount?.amount || '0.00';
   const currencyCode = cartStore.cart?.cost?.totalAmount?.currencyCode || 'USD';
+  const appliedDiscountCodes = cartStore.appliedDiscountCodes;
+  const discountSavings = cartStore.discountSavings;
 
   const contextValue: CartContextType = {
     cart: cartStore.cart,
@@ -59,6 +61,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     totalAmount,
     currencyCode,
     lines,
+    appliedDiscountCodes,
+    discountSavings,
     
     // Actions
     addToCart: cartStore.addToCart,

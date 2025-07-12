@@ -21,11 +21,34 @@ export const ShopifyIcon = ({ size = 24, color = '#000000', strokeWidth = 2 }: I
   </Svg>
 );
 
-// Export all icons as a convenient object
-export const Icons = {
-  // Navigation
-  Shopify: ShopifyIcon,
+export const CheckIcon = ({ size = 24, color = '#000000', strokeWidth = 2 }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path 
+      d="M20 6L9 17L4 12" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
+export const XIcon = ({ size = 24, color = '#000000', strokeWidth = 2 }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path 
+      d="M18 6L6 18M6 6L18 18" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const Icons = {
+  Shopify: ShopifyIcon,
+  Check: CheckIcon,
+  X: XIcon,
 };
 
 export default Icons;
