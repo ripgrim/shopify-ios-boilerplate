@@ -54,7 +54,9 @@
         }
       ],
       "@bacons/apple-targets",
-      ["react-native-bottom-tabs"],
+      [
+        "react-native-bottom-tabs"
+      ],
       [
         "expo-build-properties",
         {
@@ -65,7 +67,8 @@
         }
       ],
       "expo-font",
-      "expo-build-properties"
+      "expo-build-properties",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true
