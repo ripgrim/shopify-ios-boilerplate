@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text';
 import { useCartActions, useCartDrawer } from '@/hooks/useCart';
 import { useProduct } from '@/hooks/useShopifyData';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { optimizeShopifyImage } from '@/lib/utils';
+import { formatPrice, optimizeShopifyImage } from '@/lib/utils';
 import { ShopifyProductVariant } from '@/types/shopify';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, ShoppingCart, Star } from 'lucide-react-native';
@@ -97,10 +97,6 @@ export default function ProductPage() {
         } finally {
             setIsAddingToCart(false);
         }
-    };
-
-    const formatPrice = (price: { amount: string; currencyCode: string }) => {
-        return `${price.currencyCode} ${price.amount}`;
     };
 
     const handleMainImageLoad = (imageId: string) => {
@@ -195,7 +191,7 @@ export default function ProductPage() {
                             {product.vendor}
                         </Text>
                         <Text className="text-2xl font-semibold text-primary mb-4">
-                            {formatPrice(currentPrice)}
+                            {formatPrice(currentPrice.amount, currentPrice.currencyCode)}
                         </Text>
 
                         {variants.length > 1 && (

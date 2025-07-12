@@ -19,3 +19,12 @@ export function optimizeShopifyImage(url: string, width?: number, height?: numbe
   
   return url;
 } 
+
+export function formatPrice(amount: string, currencyCode: string) {
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: 2,
+    });
+    return formatter.format(parseFloat(amount));
+}

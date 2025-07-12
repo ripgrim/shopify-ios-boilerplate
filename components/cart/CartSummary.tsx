@@ -1,3 +1,4 @@
+import { formatPrice } from '@/lib/utils';
 import { CreditCard, ExternalLink, ShoppingCart } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Linking, View } from 'react-native';
@@ -14,10 +15,6 @@ interface CartSummaryProps {
 export const CartSummary: React.FC<CartSummaryProps> = ({ onCheckout }) => {
   const { cart, totalAmount, currencyCode, closeDrawer } = useCart();
   const iconColor = useThemeColor({}, 'text');
-
-  const formatPrice = (amount: string, currencyCode: string) => {
-    return `${currencyCode} ${parseFloat(amount).toFixed(2)}`;
-  };
 
   const handleCheckout = async () => {
     try {
@@ -51,7 +48,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ onCheckout }) => {
     return null;
   }
 
-  const subtotal = formatPrice(cart.cost.subtotalAmount.amount, cart.cost.subtotalAmount.currencyCode);
+    const subtotal = formatPrice(cart.cost.subtotalAmount.amount, cart.cost.subtotalAmount.currencyCode);
   const total = formatPrice(cart.cost.totalAmount.amount, cart.cost.totalAmount.currencyCode);
   const tax = cart.cost.totalTaxAmount ? formatPrice(cart.cost.totalTaxAmount.amount, cart.cost.totalTaxAmount.currencyCode) : null;
   const duty = cart.cost.totalDutyAmount ? formatPrice(cart.cost.totalDutyAmount.amount, cart.cost.totalDutyAmount.currencyCode) : null;

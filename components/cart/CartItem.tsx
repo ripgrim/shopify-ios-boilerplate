@@ -2,7 +2,7 @@
 import { useCart } from '@/components/cart/CartProvider';
 import { Text } from '@/components/ui/text';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { optimizeShopifyImage } from '@/lib/utils';
+import { formatPrice, optimizeShopifyImage } from '@/lib/utils';
 import { CartLine } from '@/types/cart';
 import { Minus, Plus, Trash2 } from 'lucide-react-native';
 import React, { useRef, useState } from 'react';
@@ -81,10 +81,6 @@ export const CartItem: React.FC<CartItemProps> = ({
         }).start();
       }
     }
-  };
-
-  const formatPrice = (amount: string, currencyCode: string) => {
-    return `${currencyCode} ${parseFloat(amount).toFixed(2)}`;
   };
 
   const totalPrice = formatPrice(item.cost.totalAmount.amount, item.cost.totalAmount.currencyCode);

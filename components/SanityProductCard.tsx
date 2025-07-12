@@ -1,4 +1,5 @@
 import { Text } from '@/components/ui/text';
+import { formatPrice } from '@/lib/utils';
 import { SanityProduct } from '@/types/sanity';
 import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
@@ -10,12 +11,7 @@ interface SanityProductCardProps {
 }
 
 export const SanityProductCard: React.FC<SanityProductCardProps> = ({ product, onPress, style }) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price);
-  };
+
 
   return (
     <TouchableOpacity 
@@ -49,7 +45,7 @@ export const SanityProductCard: React.FC<SanityProductCardProps> = ({ product, o
         
         <View className="flex-row justify-between items-center">
           {product.store.price && (
-            <Text className="text-base font-bold text-primary">{formatPrice(product.store.price)}</Text>
+            <Text className="text-base font-bold text-primary">{formatPrice(product.store.price.toString(), 'USD')}</Text>
           )}
           {product.store.availableForSale === false && (
             <Text className="text-xs text-destructive font-semibold">Sold Out</Text>
