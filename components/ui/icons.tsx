@@ -45,10 +45,71 @@ export const XIcon = ({ size = 24, color = '#000000', strokeWidth = 2 }: IconPro
   </Svg>
 );
 
+export const WifiIcon = ({ size = 24, color = '#000000', strokeWidth = 2 }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path 
+      d="M1 9L12 20L23 9C21.5 7.5 19.5 6.5 17 6.5C14.5 6.5 12.5 7.5 11 9C9.5 7.5 7.5 6.5 5 6.5C2.5 6.5 0.5 7.5 1 9Z" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <Path 
+      d="M5 12.5C6.5 11 8.5 10 11 10C13.5 10 15.5 11 17 12.5" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <Path 
+      d="M8.5 16C9.5 15 10.5 14.5 12 14.5C13.5 14.5 14.5 15 15.5 16" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const WifiOffIcon = ({ size = 24, color = '#000000', strokeWidth = 2 }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path 
+      d="M1 1L23 23" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <Path 
+      d="M16.72 11.06C19.39 9.19 20 8.5 20 8.5C18.5 7 16.5 6 14 6C11.5 6 9.5 7 8 8.5L10.07 10.57" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <Path 
+      d="M5 12.5C6.5 11 8.5 10 11 10C13.5 10 15.5 11 17 12.5" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <Path 
+      d="M8.5 16C9.5 15 10.5 14.5 12 14.5C13.5 14.5 14.5 15 15.5 16" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 export const Icons = {
   Shopify: ShopifyIcon,
   Check: CheckIcon,
   X: XIcon,
+  Wifi: WifiIcon,
+  WifiOff: WifiOffIcon,
 };
 
 export default Icons;
