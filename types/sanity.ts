@@ -38,6 +38,7 @@ export interface ShopifyStoreData {
   status: string;
   tags?: string[];
   vendor?: string;
+  currencyCode?: string;
   productType?: string;
   createdAt: string;
   updatedAt: string;

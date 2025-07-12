@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useCustomerOrders } from '@/hooks/useShopifyData';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { formatPrice } from '@/lib/utils';
 import { CustomerAccountOrder } from '@/types/customerAccount';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
@@ -34,10 +35,6 @@ export default function OrdersList({ onOrderPress, onBack }: OrdersListProps) {
     });
   };
 
-  const formatPrice = (price: { amount: string; currencyCode: string }) => {
-    return `${price.currencyCode} ${price.amount}`;
-  };
-
   const renderOrder = ({ item: order }: { item: CustomerAccountOrder }) => (
     <Button
       onPress={() => onOrderPress?.(order)}
@@ -55,7 +52,7 @@ export default function OrdersList({ onOrderPress, onBack }: OrdersListProps) {
       
       <View className="flex-row justify-between items-center mb-2 w-full">
         <Text className="text-card-foreground">
-          {formatPrice(order.totalPrice)}
+          {formatPrice(order.totalPrice.amount, order.totalPrice.currencyCode)}
         </Text>
         <Text className="text-muted-foreground text-sm">
           {formatDate(order.processedAt)}

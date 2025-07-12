@@ -19,3 +19,21 @@ export function optimizeShopifyImage(url: string, width?: number, height?: numbe
   
   return url;
 } 
+
+export function formatPrice(amount: string, currencyCode: string, locale = 'en-US') {
+     const numericAmount = parseFloat(amount);
+     if (isNaN(numericAmount)) {
+         throw new Error(`Invalid amount: ${amount}`);
+     }
+     
+     try {
+         const formatter = new Intl.NumberFormat(locale, {
+             style: 'currency',
+             currency: currencyCode,
+             minimumFractionDigits: 2,
+         });
+         return formatter.format(numericAmount);
+     } catch (error) {
+         throw new Error(`Invalid currency code: ${currencyCode}`);
+     }
+ }
