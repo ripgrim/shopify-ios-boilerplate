@@ -2,6 +2,7 @@
 // import { CUSTOMER_QUERY, customerAccountApi } from '@/services/customerAccountApi';
 import { StoreStatusDebug } from '@/components/StoreStatusDebug';
 import { Text } from '@/components/ui/text';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
@@ -407,6 +408,11 @@ export default function TestScreen() {
           </Text>
         </TouchableOpacity>
 
+        <View className="mb-6">
+          <Text className="text-2xl font-bold mb-2">Network Status</Text>
+          <NetworkStatusSection />
+        </View>
+
         {/* Store Status Debug */}
         <View className="mb-6">
           <StoreStatusDebug />
@@ -577,3 +583,31 @@ export default function TestScreen() {
     </SafeAreaView>
   );
 } 
+
+// Network Status Component
+const NetworkStatusSection = () => {
+  const { isOffline, isConnected, isInternetReachable, type, connectionQuality, checkConnection } = useNetworkStatus();
+  
+  const testConnection = async () => {
+    const result = await checkConnection();
+    Alert.alert('Connection Test', `Connection ${result ? 'successful' : 'failed'}`);
+  };
+
+  return (
+    <View className="p-4 border border-border rounded-lg bg-background">
+      <Text className="font-semibold mb-2">Current Network Status:</Text>
+      <Text>Connected: {isConnected ? '✅' : '❌'}</Text>
+      <Text>Internet Reachable: {isInternetReachable ? '✅' : '❌'}</Text>
+      <Text>Connection Type: {type}</Text>
+      <Text>Quality: {connectionQuality}</Text>
+      <Text>Status: {isOffline ? '🔴 Offline' : '🟢 Online'}</Text>
+      
+      <TouchableOpacity 
+        onPress={testConnection}
+        className="mt-3 p-3 bg-blue-500 rounded-lg"
+      >
+        <Text className="text-white text-center font-semibold">Test Connection</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}; 
