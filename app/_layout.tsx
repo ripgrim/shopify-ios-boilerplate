@@ -163,7 +163,7 @@ export default function RootLayout() {
           host: 'https://us.i.posthog.com',
           enableSessionReplay: true,
         }}
-        // autocapture
+        autocapture
       >
         <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
           <AuthGuard />
