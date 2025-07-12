@@ -88,6 +88,7 @@ class CustomerAccountAuthServiceImpl implements CustomerAccountAuthService {
 
   async getStoredTokens(): Promise<CustomerTokens | null> {
     try {
+      console.log('=== GETTING STORED TOKENS ===');
       const [accessToken, refreshToken, idToken, expiresAt] = await Promise.all([
         SecureStore.getItemAsync(STORAGE_KEYS.ACCESS_TOKEN),
         SecureStore.getItemAsync(STORAGE_KEYS.REFRESH_TOKEN),
@@ -95,16 +96,32 @@ class CustomerAccountAuthServiceImpl implements CustomerAccountAuthService {
         SecureStore.getItemAsync(STORAGE_KEYS.EXPIRES_AT),
       ]);
 
+      console.log('Token retrieval results:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        hasIdToken: !!idToken,
+        hasExpiresAt: !!expiresAt,
+        expiresAt: expiresAt,
+      });
+
       if (!accessToken || !refreshToken || !idToken || !expiresAt) {
+        console.log('Missing required tokens, returning null');
         return null;
       }
 
-      return {
+      const tokens = {
         accessToken,
         refreshToken,
         idToken,
         expiresAt: parseInt(expiresAt, 10),
       };
+
+      console.log('Parsed tokens:', {
+        expiresAt: new Date(tokens.expiresAt).toISOString(),
+        timeLeft: Math.floor((tokens.expiresAt - Date.now()) / 1000 / 60) + ' minutes',
+      });
+
+      return tokens;
     } catch (error) {
       console.error('Error getting stored tokens:', error);
       return null;
@@ -112,13 +129,26 @@ class CustomerAccountAuthServiceImpl implements CustomerAccountAuthService {
   }
 
   async isAuthenticated(): Promise<boolean> {
+    console.log('=== CHECKING AUTHENTICATION ===');
     const tokens = await this.getStoredTokens();
-    if (!tokens) return false;
+    if (!tokens) {
+      console.log('No tokens found, not authenticated');
+      return false;
+    }
 
     const now = Date.now();
     const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+    const isValid = tokens.expiresAt > now + bufferTime;
     
-    return tokens.expiresAt > now + bufferTime;
+    console.log('Token validation:', {
+      now: new Date(now).toISOString(),
+      expiresAt: new Date(tokens.expiresAt).toISOString(),
+      bufferTime: bufferTime / 1000 / 60 + ' minutes',
+      isValid,
+      timeLeft: Math.floor((tokens.expiresAt - now) / 1000 / 60) + ' minutes',
+    });
+    
+    return isValid;
   }
 
   async clearTokens(): Promise<void> {

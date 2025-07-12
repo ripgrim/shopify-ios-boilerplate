@@ -17,6 +17,7 @@ interface AuthState {
   tokens: CustomerTokens | null;
   error: string | null;
   biometricEnabled: boolean;
+  isCheckingAuth: boolean;
 
   // Actions
   login: () => Promise<void>;
@@ -37,6 +38,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   tokens: null,
   error: null,
   biometricEnabled: false,
+  isCheckingAuth: false,
 
   // Actions
   login: async () => {
@@ -106,24 +108,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   checkAuthStatus: async () => {
+    const currentState = get();
+    if (currentState.isCheckingAuth) {
+      console.log('Auth check already in progress, skipping...');
+      return;
+    }
+
     try {
-      set({ isLoading: true });
+      console.log('=== AUTH CHECK START ===');
+      set({ isLoading: true, isCheckingAuth: true });
       
       const isAuthenticated = await customerAccountAuthService.isAuthenticated();
+      console.log('Service isAuthenticated result:', isAuthenticated);
       
       if (isAuthenticated) {
         const tokens = await customerAccountAuthService.getStoredTokens();
+        console.log('Stored tokens found:', !!tokens);
         
         // Check if tokens need refreshing
         if (tokens) {
           const now = Date.now();
           const refreshBuffer = 10 * 60 * 1000; // 10 minutes before expiry
+          const timeLeft = tokens.expiresAt - now;
+          console.log('Token time left:', Math.floor(timeLeft / 1000 / 60), 'minutes');
           
-          if (tokens.expiresAt - now < refreshBuffer) {
+          if (timeLeft < refreshBuffer) {
+            console.log('Token needs refresh, refreshing...');
             // Try to refresh tokens
             try {
               await get().refreshTokens();
             } catch (refreshError) {
+              console.error('Token refresh failed:', refreshError);
               // If refresh fails, logout
               await get().logout();
               return;
@@ -134,30 +149,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             isAuthenticated: true,
             tokens,
             isLoading: false,
+            isCheckingAuth: false,
           });
+          console.log('Auth state set to authenticated');
         } else {
+          console.log('No tokens found, setting unauthenticated');
           set({
             isAuthenticated: false,
             tokens: null,
             user: null,
             isLoading: false,
+            isCheckingAuth: false,
           });
         }
       } else {
+        console.log('Service says not authenticated, setting unauthenticated');
         set({
           isAuthenticated: false,
           tokens: null,
           user: null,
           isLoading: false,
+          isCheckingAuth: false,
         });
       }
+      console.log('=== AUTH CHECK END ===');
     } catch (error) {
+      console.error('Auth check error:', error);
       set({
         isAuthenticated: false,
         tokens: null,
         user: null,
         error: error instanceof Error ? error.message : 'Auth check failed',
         isLoading: false,
+        isCheckingAuth: false,
       });
     }
   },

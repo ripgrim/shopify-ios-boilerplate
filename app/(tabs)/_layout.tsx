@@ -40,7 +40,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: () => ({ 
+          tabBarIcon: () => ({
             sfSymbol: "house",
             symbolWeight: "thin"
           }),
@@ -50,7 +50,7 @@ export default function TabLayout() {
         name="ProductsScreen"
         options={{
           title: 'Products',
-          tabBarIcon: () => ({ 
+          tabBarIcon: () => ({
             sfSymbol: "square.grid.2x2",
             symbolWeight: "medium"
           }),

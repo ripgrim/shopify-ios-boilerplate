@@ -5,7 +5,8 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { Platform } from 'react-native';
+import { useLayoutEffect } from 'react';
+import { ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import '../global.css';
@@ -13,7 +14,10 @@ import '../global.css';
 import AuthProvider from '@/components/auth/AuthProvider';
 import { Header } from '@/components/ui/Header';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useAuth } from '@/hooks/useCustomerAccount';
 import { NAV_THEME } from '@/lib/constants';
+import { useEffect, useRef, useState } from 'react';
+import WelcomeScreen from './auth/welcome';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,15 +37,77 @@ const DARK_THEME: Theme = {
   colors: NAV_THEME.dark,
 };
 
+// Auth Guard Component that handles authentication logic
+function AuthGuard() {
+  const { isAuthenticated, isLoading, checkAuthStatus } = useAuth();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        console.log('AuthGuard: Starting auth check...');
+        await checkAuthStatus();
+        console.log('AuthGuard: Auth check completed');
+      } catch (error) {
+        console.error('AuthGuard: Auth initialization error:', error);
+      } finally {
+        setIsInitialized(true);
+        console.log('AuthGuard: Initialization complete');
+      }
+    };
+
+    initializeAuth();
+  }, [checkAuthStatus]);
+
+  console.log('AuthGuard render state:', {
+    isInitialized,
+    isLoading,
+    isAuthenticated,
+  });
+
+  // Show loading screen while checking authentication status
+  if (!isInitialized || isLoading) {
+    console.log('AuthGuard: Showing loading screen');
+    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
+
+  if (!isAuthenticated) {
+    console.log('AuthGuard: User not authenticated, showing welcome screen');
+    return <WelcomeScreen />;
+  }
+
+  console.log('AuthGuard: User authenticated, showing main app');
+  return (
+    <AuthProvider>
+      <Header />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            gestureEnabled: true,
+            gestureDirection: 'horizontal',
+            fullScreenGestureEnabled: true,
+            animation: 'slide_from_right',
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </GestureHandlerRootView>
+    </AuthProvider>
+  );
+}
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary
 } from 'expo-router';
 
 export default function RootLayout() {
-  const hasMounted = React.useRef(false);
+  const hasMounted = useRef(false);
   const { effectiveColorScheme, isDarkColorScheme } = useColorScheme();
-  const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
+  const [isColorSchemeLoaded, setIsColorSchemeLoaded] = useState(false);
   const [loaded, error] = useFonts({
     // SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     Geist_400Regular,
@@ -53,7 +119,7 @@ export default function RootLayout() {
     Geist_100Thin,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (hasMounted.current) {
       return;
     }
@@ -73,29 +139,12 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <Header />
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                gestureEnabled: true,
-                gestureDirection: 'horizontal',
-                fullScreenGestureEnabled: true,
-                animation: 'slide_from_right',
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
-          </GestureHandlerRootView>
-        </ThemeProvider>
-      </AuthProvider>
+      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+        <AuthGuard />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
 
 const useIsomorphicLayoutEffect =
-  Platform.OS === 'web' && typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
+  Platform.OS === 'web' && typeof window === 'undefined' ? useEffect : useLayoutEffect;

@@ -17,8 +17,6 @@ export default function CustomerProfile({ onEditProfile, onViewOrders, onManageA
   const { data: customer, isLoading, error } = useCustomer();
   const { user } = useAuth();
 
-  console.log('Customer Profile:', customer);
-
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background">
@@ -46,7 +44,7 @@ export default function CustomerProfile({ onEditProfile, onViewOrders, onManageA
       <View className="px-6 py-6 pb-2">
         <AccountHeader />
       </View>
-      <ScrollView className="flex-1">
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
         <View className="px-6">
           <ProfileCard
             onEdit={onEditProfile}

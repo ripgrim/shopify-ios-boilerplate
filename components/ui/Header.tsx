@@ -32,8 +32,6 @@ export const Header = () => {
 
     const iconColor = useColorScheme() === 'dark' ? 'white' : 'black';
 
-    console.log("menu links:", JSON.stringify(settings?.menu?.links, null, 2))
-
     return (
         <SafeAreaView className="bg-background border-b border-border">
             <View className="px-4 py-4">

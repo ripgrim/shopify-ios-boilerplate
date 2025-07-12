@@ -115,6 +115,7 @@ class CustomerAccountApiClient {
           throw new Error('Authentication required');
         }
       }
+      
       throw error;
     }
   }

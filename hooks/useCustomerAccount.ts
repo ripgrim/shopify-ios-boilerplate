@@ -274,10 +274,13 @@ export const useAuth = () => {
 
   const login = async () => {
     try {
+      console.log('Starting login process...');
       await authStore.login();
-      // Invalidate all customer data queries after login
+      console.log('Login completed, auth state:', authStore.isAuthenticated);
+      // Invalidate customer queries to refetch data
       queryClient.invalidateQueries({ queryKey: customerAccountKeys.all });
     } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Fingerprint, LogIn, User } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../hooks/useCustomerAccount';
@@ -27,7 +27,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     biometricEnabled = false
   } = authHook || {};
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Check if biometric authentication is available
     const checkBiometrics = async () => {
       const enabled = await enableBiometrics();
@@ -37,7 +37,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     checkBiometrics();
   }, [enableBiometrics]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       Alert.alert(
         'Authentication Error',
@@ -54,12 +54,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const handleLogin = async () => {
     try {
+      console.log('LoginScreen: Starting login...');
       setLoginError(null);
-      console.log('Starting login process...');
       await login();
+      console.log('LoginScreen: Login completed successfully');
       onLoginSuccess?.();
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('LoginScreen: Login error:', error);
       setLoginError('Login failed. Please try again.');
       Alert.alert('Login Failed', 'An error occurred during login. Please try again.');
     }

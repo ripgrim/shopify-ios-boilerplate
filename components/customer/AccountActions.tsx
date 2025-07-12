@@ -3,8 +3,8 @@ import { Divider } from '@/components/ui/divider';
 import { useAuth } from '@/hooks/useCustomerAccount';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { LogOut, MapPin, Settings, ShoppingBag } from 'lucide-react-native';
-import React from 'react';
-import { Alert, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Text, View } from 'react-native';
 
 interface AccountActionsProps {
   onEditProfile?: () => void;
@@ -14,15 +14,15 @@ interface AccountActionsProps {
 
 export default function AccountActions({ onEditProfile, onViewOrders, onManageAddresses }: AccountActionsProps) {
   const iconColor = useThemeColor({}, 'icon');
-
   const { logout } = useAuth();
-
-
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    if (isLoggingOut) return;
+
     Alert.alert(
       'Sign Out',
-      'Are you sure you want to sign out?',
+      'Are you sure you want to sign out of your account?',
       [
         {
           text: 'Cancel',
@@ -32,11 +32,18 @@ export default function AccountActions({ onEditProfile, onViewOrders, onManageAd
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
+            setIsLoggingOut(true);
             try {
               await logout();
             } catch (error) {
               console.error('Logout error:', error);
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
+              Alert.alert(
+                'Sign Out Error',
+                'Unable to sign out completely. You may need to sign in again on your next visit.',
+                [{ text: 'OK' }]
+              );
+            } finally {
+              setIsLoggingOut(false);
             }
           },
         },
@@ -86,13 +93,22 @@ export default function AccountActions({ onEditProfile, onViewOrders, onManageAd
 
       <Button
         onPress={handleLogout}
+        disabled={isLoggingOut}
         variant="destructive"
-        className="bg-destructive/10 border border-destructive rounded-2xl p-4 flex-row items-center justify-start min-h-16 space-x-4"
+        className="bg-destructive rounded-2xl p-4 flex-row items-center justify-start min-h-16"
       >
-        <LogOut size={20} color={"#f00"} className="mr-6" />
+        {isLoggingOut ? (
+          <ActivityIndicator size={20} color="white" className="mr-6" />
+        ) : (
+          <LogOut size={20} color="white" className="mr-6" />
+        )}
         <View className="flex-1 ml-4">
-          <Text className="text-card-foreground font-medium">Sign Out</Text>
-          <Text className="text-muted-foreground text-sm">Sign out of your account</Text>
+          <Text className="text-destructive-foreground font-medium">
+            {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
+          </Text>
+          <Text className="text-destructive-foreground/70 text-sm">
+            {isLoggingOut ? 'Please wait' : 'Sign out of your account'}
+          </Text>
         </View>
       </Button>
     </View>
