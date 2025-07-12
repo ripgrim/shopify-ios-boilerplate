@@ -42,11 +42,6 @@ interface CartState {
   closeDrawer: () => void;
   toggleDrawer: () => void;
   clearError: () => void;
-  
-  // Internal actions
-  _setCart: (cart: ShopifyCart | null) => void;
-  _setLoading: (loading: boolean) => void;
-  _setError: (error: string | null) => void;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -388,18 +383,5 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
-  },
-
-  // Internal actions
-  _setCart: (cart: ShopifyCart | null) => {
-    set({ cart });
-  },
-
-  _setLoading: (isLoading: boolean) => {
-    set({ isLoading });
-  },
-
-  _setError: (error: string | null) => {
-    set({ error });
   },
 })); 

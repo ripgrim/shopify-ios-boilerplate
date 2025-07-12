@@ -12,6 +12,13 @@ import {
 } from '@/types/cart';
 import { GraphQLClient } from 'graphql-request';
 
+class CartApiError extends Error {
+  constructor(public userErrors: { field: string; message: string }[]) {
+    super(userErrors.map(e => e.message).join(', '));
+    this.name = 'CartApiError';
+  }
+}
+
 class CartApiService {
   private client: GraphQLClient;
 
@@ -240,7 +247,8 @@ class CartApiService {
       };
 
       if (response.cartCreate.userErrors.length > 0) {
-        throw new Error(response.cartCreate.userErrors[0].message);
+        console.error('Cart creation errors:', response.cartCreate.userErrors);
+        throw new CartApiError(response.cartCreate.userErrors);
       }
 
       return response.cartCreate.cart;
@@ -279,7 +287,8 @@ class CartApiService {
       };
 
       if (response.cartLinesAdd.userErrors.length > 0) {
-        throw new Error(response.cartLinesAdd.userErrors[0].message);
+        console.error('Cart lines add errors:', response.cartLinesAdd.userErrors);
+        throw new CartApiError(response.cartLinesAdd.userErrors);
       }
 
       return response.cartLinesAdd.cart;
@@ -318,7 +327,8 @@ class CartApiService {
       };
 
       if (response.cartLinesUpdate.userErrors.length > 0) {
-        throw new Error(response.cartLinesUpdate.userErrors[0].message);
+        console.error('Cart lines update errors:', response.cartLinesUpdate.userErrors);
+        throw new CartApiError(response.cartLinesUpdate.userErrors);
       }
 
       return response.cartLinesUpdate.cart;
@@ -357,7 +367,8 @@ class CartApiService {
       };
 
       if (response.cartLinesRemove.userErrors.length > 0) {
-        throw new Error(response.cartLinesRemove.userErrors[0].message);
+        console.error('Cart lines remove errors:', response.cartLinesRemove.userErrors);
+        throw new CartApiError(response.cartLinesRemove.userErrors);
       }
 
       return response.cartLinesRemove.cart;
@@ -396,7 +407,8 @@ class CartApiService {
       };
 
       if (response.cartBuyerIdentityUpdate.userErrors.length > 0) {
-        throw new Error(response.cartBuyerIdentityUpdate.userErrors[0].message);
+        console.error('Cart buyer identity update errors:', response.cartBuyerIdentityUpdate.userErrors);
+        throw new CartApiError(response.cartBuyerIdentityUpdate.userErrors);
       }
 
       return response.cartBuyerIdentityUpdate.cart;
@@ -435,7 +447,8 @@ class CartApiService {
       };
 
       if (response.cartAttributesUpdate.userErrors.length > 0) {
-        throw new Error(response.cartAttributesUpdate.userErrors[0].message);
+        console.error('Cart attributes update errors:', response.cartAttributesUpdate.userErrors);
+        throw new CartApiError(response.cartAttributesUpdate.userErrors);
       }
 
       return response.cartAttributesUpdate.cart;
@@ -474,7 +487,8 @@ class CartApiService {
       };
 
       if (response.cartDiscountCodesUpdate.userErrors.length > 0) {
-        throw new Error(response.cartDiscountCodesUpdate.userErrors[0].message);
+        console.error('Cart discount codes update errors:', response.cartDiscountCodesUpdate.userErrors);
+        throw new CartApiError(response.cartDiscountCodesUpdate.userErrors);
       }
 
       return response.cartDiscountCodesUpdate.cart;
@@ -513,7 +527,8 @@ class CartApiService {
       };
 
       if (response.cartNoteUpdate.userErrors.length > 0) {
-        throw new Error(response.cartNoteUpdate.userErrors[0].message);
+        console.error('Cart note update errors:', response.cartNoteUpdate.userErrors);
+        throw new CartApiError(response.cartNoteUpdate.userErrors);
       }
 
       return response.cartNoteUpdate.cart;

@@ -2,10 +2,11 @@ import { getDrawerWidth } from '@/lib/dimensions';
 import { ShoppingCart, X } from 'lucide-react-native';
 import { MotiView } from 'moti';
 import React from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColor } from '../../hooks/useThemeColor';
+import { OptimizedImage } from '../helpers/OptimizedImage';
 import { Button } from '../ui/button';
 import { Text } from '../ui/text';
 import { useCart } from './CartProvider';
@@ -30,8 +31,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
   const drawerWidth = getDrawerWidth();
 
   const panGesture = Gesture.Pan()
-    .onUpdate((event) => {
-      if (event.translationX > 50) {
+    .onEnd((event) => {
+      // Close on sufficient swipe distance or velocity
+      if (event.translationX > 50 || event.velocityX > 500) {
         closeDrawer();
       }
     });
@@ -154,11 +156,7 @@ const CartItemsList: React.FC<{ lines: any[] }> = ({ lines }) => (
         <View className="flex-row">
           {line.merchandise.image && (
             <View className="w-16 h-16 rounded-lg overflow-hidden mr-3">
-              <Image
-                source={{ uri: line.merchandise.image.url }}
-                style={{ width: 64, height: 64 }}
-                resizeMode="cover"
-              />
+              <OptimizedImage url={line.merchandise.image.url} width={64} height={64} />
             </View>
           )}
           <View className="flex-1">

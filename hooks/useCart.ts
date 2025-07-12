@@ -9,8 +9,13 @@ export const useCartUtils = () => {
   const cart = useCartContext();
 
   // Format price utility
-  const formatPrice = (amount: string, currencyCode: string) => {
-    return `${currencyCode} ${parseFloat(amount).toFixed(2)}`;
+  const formatPrice = (amount: string, currencyCode: string, locale: string = 'en-US') => {
+    const formatter = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode,
+    });
+    const numericAmount = Math.round(parseFloat(amount) * 100) / 100;
+    return formatter.format(numericAmount);
   };
 
   // Get cart item by merchandise ID
@@ -63,19 +68,31 @@ export const useCartUtils = () => {
     const promises = items.map(item => 
       cart.addToCart(item.merchandiseId, item.quantity, item.attributes)
     );
-    await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.error(`Failed to add ${failures.length} items`);
+    }
   };
 
   const updateMultipleItems = async (updates: { lineId: string; quantity: number }[]) => {
     const promises = updates.map(update => 
       cart.updateCartLine(update.lineId, update.quantity)
     );
-    await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.error(`Failed to update ${failures.length} items`);
+    }
   };
 
   const removeMultipleItems = async (lineIds: string[]) => {
     const promises = lineIds.map(lineId => cart.removeFromCart(lineId));
-    await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.error(`Failed to remove ${failures.length} items`);
+    }
   };
 
   // Advanced cart operations
