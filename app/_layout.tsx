@@ -15,10 +15,12 @@ import AuthProvider from '@/components/auth/AuthProvider';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { CartProvider } from '@/components/cart/CartProvider';
 import { Header } from '@/components/ui/Header';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/hooks/useCustomerAccount';
 import { NAV_THEME } from '@/lib/constants';
 import { ColorScheme, ShopifyCheckoutSheetProvider } from '@shopify/checkout-sheet-kit';
+import { PostHogProvider } from 'posthog-react-native';
 import { useEffect, useRef, useState } from 'react';
 import WelcomeScreen from './auth/welcome';
 
@@ -88,10 +90,12 @@ function AuthGuard() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
+        
         <ShopifyCheckoutSheetProvider configuration={checkoutConfig}>
           <CartProvider>
             <CartDrawer>
               <Header />
+              <OfflineBanner />
               <Stack
                 screenOptions={{
                   headerShown: false,
@@ -153,9 +157,18 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-        <AuthGuard />
-      </ThemeProvider>
+      <PostHogProvider
+        apiKey="phc_nN7xm6Z6vIzsiMvNFmmhxKoLoAaWEbygGivp0zNWexS"
+        options={{
+          host: 'https://us.i.posthog.com',
+          enableSessionReplay: true,
+        }}
+        // autocapture
+      >
+        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+          <AuthGuard />
+        </ThemeProvider>
+      </PostHogProvider>
     </QueryClientProvider>
   );
 }
