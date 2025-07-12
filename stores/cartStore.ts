@@ -380,7 +380,6 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   applyDiscountCode: async (code: string) => {
-  applyDiscountCode: async (code: string) => {
     const currentState = get();
     const trimmedCode = code.trim();
 
