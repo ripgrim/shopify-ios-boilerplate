@@ -231,7 +231,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ children }) => {
                         try {
                           await clearCart();
                         } catch (error) {
-                          console.error('Failed to clear cart:', error);
+                          // TODO: Show user-friendly error toast/alert
+                          Alert.alert('Error', 'Failed to clear cart. Please try again.');
                         }
                       }}
                       className="w-full h-12 rounded-2xl bg-muted/50"
@@ -266,7 +267,7 @@ const EmptyCart: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       </Text>
       
       <Text className="text-muted-foreground text-center mb-8 leading-relaxed">
-        Looks like you haven't added anything to your cart yet
+        Looks like you haven&apos;t added anything to your cart yet
       </Text>
       
       <Button

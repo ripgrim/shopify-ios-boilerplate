@@ -42,7 +42,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     if (!cartStore.isInitialized) {
       cartStore.initializeCart();
     }
-  }, [cartStore.isInitialized]);
+  }, []);
 
   // Calculate derived values from cart state
   const lines = cartStore.cart?.lines?.edges?.map(edge => edge.node) || [];
@@ -59,12 +59,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     isInitialized: cartStore.isInitialized,
     error: cartStore.error,
     isDrawerOpen: cartStore.isDrawerOpen,
-    totalQuantity,
-    totalAmount,
-    currencyCode,
-    lines,
-    appliedDiscountCodes,
-    discountSavings,
+    totalQuantity: cartStore.totalQuantity,
+    totalAmount: cartStore.totalAmount,
+    currencyCode: cartStore.currencyCode,
+    lines: cartStore.lines,
+    appliedDiscountCodes: cartStore.appliedDiscountCodes,
+    discountSavings: cartStore.discountSavings,
     checkoutUrl,
     
     // Actions

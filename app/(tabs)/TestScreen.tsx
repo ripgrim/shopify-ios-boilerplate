@@ -1,6 +1,5 @@
 // import { useAuth } from '@/hooks/useCustomerAccount';
 // import { CUSTOMER_QUERY, customerAccountApi } from '@/services/customerAccountApi';
-import { StoreStatusDebug } from '@/components/StoreStatusDebug';
 import { Text } from '@/components/ui/text';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -411,11 +410,6 @@ export default function TestScreen() {
         <View className="mb-6">
           <Text className="text-2xl font-bold mb-2">Network Status</Text>
           <NetworkStatusSection />
-        </View>
-
-        {/* Store Status Debug */}
-        <View className="mb-6">
-          <StoreStatusDebug />
         </View>
 
         <Text className="text-lg font-semibold text-foreground mb-4">

@@ -3,16 +3,15 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, View } from 'react-native';
+import { Animated, useWindowDimensions, View } from 'react-native';
 import { WifiIcon, WifiOffIcon } from './icons';
-
-const { width } = Dimensions.get('window');
 
 export const OfflineBanner: React.FC = () => {
   const { isOffline, connectionQuality, type } = useNetworkStatus();
   const slideAnim = useRef(new Animated.Value(-60)).current;
   const backgroundColor = useThemeColor({}, 'destructive');
   const textColor = '#FFFFFF';
+  const { width } = useWindowDimensions();
   
   useEffect(() => {
     if (isOffline) {

@@ -21,6 +21,8 @@ const clientEnvSchema = z.object({
   // App Config
   EXPO_PUBLIC_APP_ENV: z.enum(['development', 'staging', 'production']).default('development'),
   EXPO_PUBLIC_NGROK_URL: z.string().url().optional(),
+
+  EXPO_PUBLIC_POSTHOG_API_KEY: z.string().min(1, 'PostHog API key is required'),
 });
 
 type ClientEnvVars = z.infer<typeof clientEnvSchema>;
@@ -62,6 +64,9 @@ export interface AppConfig {
     env: string;
     ngrokUrl?: string;
   };
+  posthog: {
+    apiKey: string;
+  };
 }
 
 const config: AppConfig = {
@@ -85,6 +90,9 @@ const config: AppConfig = {
   app: {
     env: env.EXPO_PUBLIC_APP_ENV,
     ngrokUrl: env.EXPO_PUBLIC_NGROK_URL,
+  },
+  posthog: {
+    apiKey: env.EXPO_PUBLIC_POSTHOG_API_KEY,
   },
 };
 

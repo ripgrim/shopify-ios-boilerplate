@@ -8,6 +8,19 @@ export interface CartAttribute {
   value: string;
 }
 
+export interface CartAddress {
+  address1?: string;
+  address2?: string;
+  city?: string;
+  company?: string;
+  country?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  province?: string;
+  zip?: string;
+}
+
 export interface CartBuyerIdentity {
   countryCode?: string;
   email?: string;
@@ -18,18 +31,7 @@ export interface CartBuyerIdentity {
     firstName?: string;
     lastName?: string;
   };
-  deliveryAddressPreferences?: {
-    address1?: string;
-    address2?: string;
-    city?: string;
-    company?: string;
-    country?: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    province?: string;
-    zip?: string;
-  }[];
+  deliveryAddressPreferences?: CartAddress[];
 }
 
 export interface CartLine {
@@ -96,18 +98,7 @@ export interface CartCost {
 
 export interface CartDeliveryGroup {
   id: string;
-  deliveryAddress: {
-    address1?: string;
-    address2?: string;
-    city?: string;
-    company?: string;
-    country?: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    province?: string;
-    zip?: string;
-  };
+  deliveryAddress: CartAddress;
   cartLines: {
     edges: {
       node: CartLine;

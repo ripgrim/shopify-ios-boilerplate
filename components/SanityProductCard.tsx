@@ -45,7 +45,7 @@ export const SanityProductCard: React.FC<SanityProductCardProps> = ({ product, o
         
         <View className="flex-row justify-between items-center">
           {product.store.price && (
-            <Text className="text-base font-bold text-primary">{formatPrice(product.store.price.toString(), 'USD')}</Text>
+            <Text className="text-base font-bold text-primary">{formatPrice(product.store.price.toString(), product.store.currencyCode || 'USD')}</Text>
           )}
           {product.store.availableForSale === false && (
             <Text className="text-xs text-destructive font-semibold">Sold Out</Text>

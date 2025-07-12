@@ -67,10 +67,6 @@ export const useNetworkStatus = (): NetworkHookReturn => {
         return 'VPN';
       case Network.NetworkStateType.WIMAX:
         return 'WiMAX';
-      case Network.NetworkStateType.NONE:
-        return 'None';
-      case Network.NetworkStateType.UNKNOWN:
-      case Network.NetworkStateType.OTHER:
       default:
         return 'Unknown';
     }
